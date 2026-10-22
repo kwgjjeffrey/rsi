@@ -1,0 +1,7 @@
+.data/
+.trial/
+.omni-builder/
+local-runtime/target/
+local-runtime/bin/
+dist/
+__pycache__/

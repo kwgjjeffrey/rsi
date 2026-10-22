@@ -1,0 +1,9 @@
+# RSI
+
+Skill 驱动的目标 Skill 持续优化工作台。统一 case record：task input、trajectory、annotation、reflection。每个 Round 汇总逐题归因，保留代码和评测证据。
+
+消费入口 [SKILL.md](SKILL.md)。当前本地开发版本，尚未发布 GitHub 仓库或 Release。仅本机 macOS 构建经过验证，不能把源码脚手架当成公开安装制品。
+
+开发：`python3 setup/scripts/manage_rsi_runtime.py build --data-dir .data`，然后 `python3 setup/scripts/manage_rsi_runtime.py start --data-dir .data`。开发需要 Rust/Cargo 和 Python 3.9+。状态 .data 不进入 Git；安装后使用版本目录之外的数据根。
+
+已实现和限制见 [设计](docs/design.md)。
