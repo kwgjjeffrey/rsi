@@ -18,14 +18,14 @@ if a.action=='status':print(json.dumps({'running':bool(d),'discovery':str(discov
 if a.action=='stop':
  if d:os.kill(d['pid'],signal.SIGTERM)
  discovery.unlink(missing_ok=True);print('{"stopped":true}');sys.exit()
-if d:print(d['url']+'/#'+d['token']);sys.exit()
+if d:print(d['url']+'/');sys.exit()
 binary=skill/'local-runtime/bin/rsi-runtime'
 if not binary.is_file():sys.exit('runtime binary missing; developers use build, consumers install a platform release')
 env=dict(os.environ,RSI_DATA_DIR=str(data));log=open(data/'runtime.log','ab');os.chmod(data,0o700)
 proc=subprocess.Popen([str(binary),'serve'],env=env,stdout=log,stderr=log,start_new_session=True)
 for _ in range(100):
  d=healthy()
- if d:print(d['url']+'/#'+d['token']);break
+ if d:print(d['url']+'/');break
  if proc.poll() is not None:sys.exit('runtime exited; inspect runtime.log')
  time.sleep(.05)
 else:sys.exit('runtime start timeout; inspect runtime.log')

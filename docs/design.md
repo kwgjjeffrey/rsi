@@ -1,6 +1,6 @@
 # RSI 设计与实现状态
 
-统一 case record，初始化与 Replay 同构；每题 reflection 后整体归因。SQLite 索引项目，文件为内容真源；仅注册索引支持 SQLite，轮次查询按文件进行。服务单线程串行 dispatch，绑定随机 loopback 端口；API 使用本地令牌及 Origin 限制，协议 v1。配置和凭据由项目适配器管理，不写输出。
+统一 case record，初始化与 Replay 同构；每题 reflection 后整体归因。SQLite 索引项目，文件为内容真源；仅注册索引支持 SQLite，轮次查询按文件进行。服务单线程串行 dispatch，绑定随机 loopback 端口；API 无访问令牌，校验 Host 与 Origin，拒绝跨站浏览器请求，协议 v1。配置和凭据由项目适配器管理，不写输出。
 
 已实现：登记、不可覆盖问题集导入、Round 0 文件快照、CLI Replay 适配器协议、逐题配对比较、真实文件工作台。尚未实现：原生 Harness 适配器、自动模型调度、人工编辑标注 UI、折线图、后台队列、暂停运行操作、发行升级互斥及空闲退出。Python 与 Rust 共用的数据契约应通过验收测试守护，当前迭代 CLI 由 Agent 调用，GUI 只读观察其文件。
 

@@ -207,19 +207,16 @@ fn run() -> Result<(), String> {
     if a.get(1).map(String::as_str) != Some("serve") {
         return Err("usage: rsi-runtime dispatch request.json | serve".into());
     }
-    let server = tiny_http::Server::http("127.0.0.1:0").map_err(|e| e.to_string())?;
-    let addr = server.server_addr().to_string();
-    let mut random = [0u8; 32];
-    std::io::Read::read_exact(
-        &mut fs::File::open("/dev/urandom").map_err(|e| e.to_string())?,
-        &mut random,
-    )
+    let server = tiny_http::Server::http(format!(
+        "127.0.0.1:{}",
+        env::var("RSI_PORT").unwrap_or("0".into())
+    ))
     .map_err(|e| e.to_string())?;
-    let token: String = random.iter().map(|b| format!("{b:02x}")).collect();
+    let addr = server.server_addr().to_string();
     let discovery = root.join("runtime.json");
     save(
         &discovery,
-        &json!({"url":format!("http://{addr}"),"token":token,"pid":std::process::id(),"protocol":1}),
+        &json!({"url":format!("http://{addr}"),"pid":std::process::id(),"protocol":1}),
     )?;
     #[cfg(unix)]
     {
@@ -229,6 +226,19 @@ fn run() -> Result<(), String> {
     }
     println!("http://{addr}");
     for mut req in server.incoming_requests() {
+        // Loopback-only UI: reject DNS rebinding and cross-site browser requests.
+        let host = req
+            .headers()
+            .iter()
+            .find(|h| h.field.equiv("Host"))
+            .map(|h| h.value.as_str());
+        if host != Some(addr.as_str()) {
+            let _ = req.respond(
+                tiny_http::Response::from_string(json!({"error":"host denied"}).to_string())
+                    .with_status_code(403),
+            );
+            continue;
+        }
         let origin = req
             .headers()
             .iter()
@@ -248,31 +258,24 @@ fn run() -> Result<(), String> {
         } else if req.url() == "/health" {
             ("{\"protocol\":1}".into(), "application/json", 200)
         } else if req.url() == "/api" && req.method() == &tiny_http::Method::Post {
-            let auth = req.headers().iter().any(|h| {
-                h.field.equiv("Authorization") && h.value.as_str() == format!("Bearer {token}")
-            });
-            if !auth {
-                ("unauthorized".into(), "text/plain", 401)
-            } else {
-                let mut s = String::new();
-                use std::io::Read;
-                let out = req
-                    .as_reader()
-                    .take(8_000_001)
-                    .read_to_string(&mut s)
-                    .map_err(|e| e.to_string())
-                    .and_then(|_| {
-                        if s.len() > 8_000_000 {
-                            Err("request too large".into())
-                        } else {
-                            serde_json::from_str(&s).map_err(|e| e.to_string())
-                        }
-                    })
-                    .and_then(|v| dispatch(&root, &db, v));
-                match out {
-                    Ok(v) => (v.to_string(), "application/json", 200),
-                    Err(e) => (json!({"error":e}).to_string(), "application/json", 400),
-                }
+            let mut s = String::new();
+            use std::io::Read;
+            let out = req
+                .as_reader()
+                .take(8_000_001)
+                .read_to_string(&mut s)
+                .map_err(|e| e.to_string())
+                .and_then(|_| {
+                    if s.len() > 8_000_000 {
+                        Err("request too large".into())
+                    } else {
+                        serde_json::from_str(&s).map_err(|e| e.to_string())
+                    }
+                })
+                .and_then(|v| dispatch(&root, &db, v));
+            match out {
+                Ok(v) => (v.to_string(), "application/json", 200),
+                Err(e) => (json!({"error":e}).to_string(), "application/json", 400),
             }
         } else {
             ("not found".into(), "text/plain", 404)

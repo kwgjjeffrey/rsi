@@ -4,7 +4,7 @@
 启动仅监听 loopback 的 Rust 服务与内嵌工作台。Python 3.9+ 用于按需生命周期工具，无额外常驻 Python/Node 服务。数据根必须可写且放在不可变安装版本之外，默认示例使用用户状态目录的 `.data`。
 
 ## 使用流程
-安装制品须包含当前平台的 `local-runtime/bin/rsi-runtime`。启动并打开命令返回的 URL，URL fragment 是本地访问令牌，不分享。浏览器不自动读取目标源码，只读取登记项目的数据。
+安装制品须包含当前平台的 `local-runtime/bin/rsi-runtime`。启动并打开命令返回的 URL，直接打开本地地址即可，无需登录或访问令牌。浏览器不自动读取目标源码，只读取登记项目的数据。
 
 ```bash
 RSI="$HOME/.agents/skills/rsi"
