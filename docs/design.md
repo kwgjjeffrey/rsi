@@ -5,3 +5,9 @@
 已实现：登记、不可覆盖问题集导入、Round 0 文件快照、CLI Replay 适配器协议、逐题配对比较、真实文件工作台。尚未实现：原生 Harness 适配器、自动模型调度、人工编辑标注 UI、折线图、后台队列、暂停运行操作、发行升级互斥及空闲退出。Python 与 Rust 共用的数据契约应通过验收测试守护，当前迭代 CLI 由 Agent 调用，GUI 只读观察其文件。
 
 初版仅本机单写者。文件与 SQLite 注册不是跨介质事务；异常注册若留下未索引目录，保留现场由维护者核查，不能自动覆盖。Sprint 创建失败可能留下部分目录，当前不得复用该 ID。后续需增加事务目录、恢复检查和生命周期锁。
+
+## 工作台呈现
+
+React + shadcn/ui（Base UI）构建为单文件，由 Rust 二进制内嵌，运行无外部 CDN 或 Node 服务。项目、问题集、Sprint、Round、Case 使用独立视图；仅 Blueprint/tooling 使用文件树。Markdown 通过 react-markdown/remark-gfm 渲染，不执行嵌入 HTML；工具输出默认折叠。初版数据只有基线时明确显示未进入优化，绝不将 Round 0 当成改善轮次。源数据从既有 inspect/read API 读取，不改动记录。
+
+工作台使用一次 workspace dispatch 读取文件索引与预览内容，避免浏览器逐文件并发请求；每个文件仍复用 read 的边界校验，总预览上限 32MB。

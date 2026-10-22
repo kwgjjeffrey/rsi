@@ -18,6 +18,12 @@ class Contract(unittest.TestCase):
  def test_boundaries(self):
   self.register();self.call({'op':'register','project':'../escape','repo':str(self.repo)},False);self.call({'op':'read','project':'target','path':'../../rsi.sqlite'},False)
   rec=self.record();del rec['annotation'];self.call({'op':'import','project':'target','dataset':'bad','version':'v1','records':[rec]},False)
+ def test_workspace_preserves_preview_boundaries(self):
+  self.register();base=self.root/'data/projects/target';(base/'blueprint/analysis.md').write_text('# Analysis')
+  (base/'private.txt').write_text('not a workbench artifact')
+  outside=self.root/'outside.md';outside.write_text('private outside');(base/'blueprint/escape.md').symlink_to(outside)
+  result=self.call({'op':'workspace','project':'target'})
+  self.assertEqual(result['contents']['blueprint/analysis.md'],'# Analysis');self.assertNotIn('private.txt',result['contents']);self.assertNotIn('blueprint/escape.md',result['contents'])
  def test_duplicate_cases_rejected(self):
   self.register();self.call({'op':'import','project':'target','dataset':'bad','version':'v1','records':[self.record(),self.record()]},False)
 if __name__=='__main__':unittest.main()

@@ -12,6 +12,10 @@ def healthy():
    return d if json.load(r).get('protocol')==1 else None
  except Exception:return None
 if a.action=='build':
+ frontend=skill/'local-runtime/frontend'
+ if not (frontend/'package-lock.json').is_file():sys.exit('frontend sources missing; build is for the development checkout only')
+ subprocess.run(['npm','ci','--no-audit','--no-fund'],cwd=frontend,check=True)
+ subprocess.run(['npm','run','build'],cwd=frontend,check=True)
  subprocess.run(['cargo','build','--release','--locked','--manifest-path',str(skill/'local-runtime/Cargo.toml')],check=True);out=skill/'local-runtime/bin';out.mkdir(exist_ok=True);import shutil;shutil.copy2(skill/'local-runtime/target/release/rsi-runtime',out/'rsi-runtime.staged');os.replace(out/'rsi-runtime.staged',out/'rsi-runtime');print(out/'rsi-runtime');sys.exit()
 d=healthy()
 if a.action=='status':print(json.dumps({'running':bool(d),'discovery':str(discovery),'url':d['url'] if d else None}));sys.exit()

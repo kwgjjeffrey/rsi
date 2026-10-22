@@ -22,3 +22,5 @@ DATA="$HOME/.local/state/rsi/.data"
 REQUEST="/tmp/rsi-request.json"
 RSI_DATA_DIR="$DATA" "$RSI/local-runtime/bin/rsi-runtime" dispatch "$REQUEST"
 ```
+
+工作台读取使用 `workspace` 操作，必填 project ID。输出 project、files、contents、errors；只聚合 Blueprint、tooling、datasets、sprints 中可预览文本，沿用 read 的路径与单文件 4MB 限制，总预览上限 32MB，部分读取失败以 errors 返回。它只读项目状态，不读取目标源码仓或修改记录。

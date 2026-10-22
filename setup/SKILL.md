@@ -17,7 +17,7 @@ python3 "$RSI/setup/scripts/manage_rsi_runtime.py" stop --data-dir "$DATA"
 ## 工具
 `manage_rsi_runtime.py` 的 `start/status/stop` 分别启动、只读检查、终止服务；`--data-dir` 必填路径，包含 SQLite、项目文件、发现文件和日志。start 已运行时复用健康服务，失败检查 runtime.log。stop 不回滚项目文件。当前无空闲自动退出，需要显式 stop；进程异常后可 start 重启。生命周期工具以文件锁串行启停；发行升级仍需先停止服务，不能并发升级同一安装。升级前 stop，升级后 start；数据库 schema v1 当前无迁移。
 
-安装和升级使用`manage_skill_installation.py`管理已验证 release archive/manifest，保持同一外部 store 与数据根。离线开发构建用 `python3 setup/scripts/manage_rsi_runtime.py build --data-dir .data`，需要 Rust/Cargo，源码依赖由 Cargo.lock 固定。当前只验证 macOS 主机架构，其他平台不能宣称受支持。
+安装和升级使用`manage_skill_installation.py`管理已验证 release archive/manifest，保持同一外部 store 与数据根。离线开发构建用 `python3 setup/scripts/manage_rsi_runtime.py build --data-dir .data`，需要 Rust/Cargo、Node.js 22+ 与 npm。先从 package-lock.json 准备前端构建依赖，编译 shadcn/React 工作台为单文件静态资源，再由 Cargo.lock 固定的 Rust 构建将其内嵌进二进制；运行时不需要 Node。当前只验证 macOS 主机架构，其他平台不能宣称受支持。
 
 
 ### 安装器调用

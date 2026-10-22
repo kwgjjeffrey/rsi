@@ -64,6 +64,43 @@ fn dispatch(root: &Path, db: &Connection, v: Value) -> Result<Value, String> {
     if !base.join("project.json").exists() {
         return Err("unknown project".into());
     }
+    if op == "workspace" {
+        let info = dispatch(root, db, json!({"op":"inspect","project":project}))?;
+        let mut contents = serde_json::Map::new();
+        let mut errors = Vec::new();
+        let mut total = 0usize;
+        for file in info["files"].as_array().ok_or("invalid file index")? {
+            let path = file["path"].as_str().ok_or("invalid file path")?;
+            if !["blueprint/", "tooling/", "datasets/", "sprints/"]
+                .iter()
+                .any(|p| path.starts_with(p))
+            {
+                continue;
+            }
+            if ![
+                "json", "md", "py", "mjs", "js", "yaml", "yml", "txt", "patch",
+            ]
+            .iter()
+            .any(|e| path.ends_with(&format!(".{e}")))
+            {
+                continue;
+            }
+            if total + file["bytes"].as_u64().unwrap_or(0) as usize > 32_000_000 {
+                errors.push(format!("{path}: workspace preview exceeds 32MB"));
+                continue;
+            }
+            match dispatch(root, db, json!({"op":"read","project":project,"path":path})) {
+                Ok(result) => {
+                    total += result["content"].as_str().unwrap_or("").len();
+                    contents.insert(path.into(), result["content"].clone());
+                }
+                Err(error) => errors.push(format!("{path}: {error}")),
+            }
+        }
+        return Ok(
+            json!({"project":info["project"],"files":info["files"],"contents":contents,"errors":errors}),
+        );
+    }
     if op == "inspect" {
         let mut files = vec![];
         fn walk(p: &Path, b: &Path, a: &mut Vec<Value>) {

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "name": "rsi",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "repository": "kwgjjeffrey/rsi",
   "artifactPaths": [
     "SKILL.md",
@@ -13,12 +13,13 @@
     "onboarding",
     "datasets",
     "evolution",
-    "local-runtime/bin"
+    "local-runtime/bin",
+    "local-runtime/frontend/THIRD_PARTY_NOTICES.md"
   ],
   "componentVersions": {
-    "skill": "0.1.0",
-    "runtime": "0.1.0",
-    "gui": "0.1.0"
+    "skill": "0.1.1",
+    "runtime": "0.1.1",
+    "gui": "0.1.1"
   },
   "platform": "darwin-arm64"
 }
