@@ -126,7 +126,7 @@ export function sprints(w: Workspace): Sprint[] {
             .filter((v): v is string => !!v),
         ),
       ]
-        .sort()
+        .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
         .map((n) => {
           const p = prefix + "/rounds/" + n;
           return {

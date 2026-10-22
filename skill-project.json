@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "name": "rsi",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "repository": "kwgjjeffrey/rsi",
   "artifactPaths": [
     "SKILL.md",
@@ -17,9 +17,9 @@
     "local-runtime/frontend/THIRD_PARTY_NOTICES.md"
   ],
   "componentVersions": {
-    "skill": "0.1.1",
-    "runtime": "0.1.1",
-    "gui": "0.1.1"
+    "skill": "0.1.2",
+    "runtime": "0.1.2",
+    "gui": "0.1.2"
   },
   "platform": "darwin-arm64"
 }

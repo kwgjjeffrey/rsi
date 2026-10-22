@@ -1,3 +1,5 @@
+import RoundMatrix from "./RoundMatrix";
+import type { MatrixCell } from "./matrix";
 import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import {
@@ -408,10 +410,12 @@ function Trajectory({ record }: { record: CaseRecord }) {
 }
 function CaseDetail({
   record,
+  backLabel = "返回问题列表",
   onBack,
   onRaw,
 }: {
   record: CaseRecord;
+  backLabel?: string;
   onBack: () => void;
   onRaw: (v: any, title?: string) => void;
 }) {
@@ -422,7 +426,7 @@ function CaseDetail({
       <div className="flex items-center justify-between">
         <Button variant="ghost" size="sm" onClick={onBack}>
           <ArrowLeft data-icon="inline-start" />
-          返回问题列表
+          {backLabel}
         </Button>
         <RawButton onClick={() => onRaw(record, "Case 原始记录")} />
       </div>
@@ -949,6 +953,8 @@ function Iterations({
   const ss = useMemo(() => sprints(workspace), [workspace]);
   const [id, setId] = useState(initialSprint || ss[0]?.id);
   const [roundId, setRoundId] = useState("000");
+  const [mode, setMode] = useState("matrix");
+  const [cell, setCell] = useState<MatrixCell>();
   const sprint = ss.find((s) => s.id === id) || ss[0];
   const round =
     sprint?.rounds.find((r) => r.id === roundId) || sprint?.rounds[0];
@@ -973,6 +979,8 @@ function Iterations({
               className={cn("context-item", s.id === sprint.id && "selected")}
               onClick={() => {
                 setId(s.id);
+                setMode("matrix");
+                setCell(undefined);
                 setRoundId(s.rounds[0]?.id || "000");
               }}
             >
@@ -1000,27 +1008,83 @@ function Iterations({
           </div>
           <RawButton onClick={() => onRaw(sprint.meta, "Sprint 原始配置")} />
         </div>
-        <div className="round-picker">
-          {sprint.rounds.map((r) => (
-            <Button
-              key={r.id}
-              variant={r.id === round?.id ? "secondary" : "ghost"}
-              onClick={() => setRoundId(r.id)}
-            >
-              <CircleDot data-icon="inline-start" />
-              Round {Number(r.id)}
-              {r.id === "000" && <Badge variant="outline">基线</Badge>}
-            </Button>
-          ))}
-        </div>
-        {round && (
-          <RoundView
-            key={sprint.id + round.id}
-            sprint={sprint}
-            round={round}
-            onRaw={onRaw}
-          />
-        )}
+        <Tabs value={mode} onValueChange={(v) => setMode(String(v))}>
+          <TabsList variant="line" className="mb-6 mt-5">
+            <TabsTrigger value="matrix">结论对比矩阵</TabsTrigger>
+            <TabsTrigger value="round">
+              轮次详情 · {sprint.rounds.length} 轮
+            </TabsTrigger>
+          </TabsList>
+          <TabsContent value="matrix">
+            <RoundMatrix
+              sprint={sprint}
+              threshold={
+                parse<Json>(
+                  workspace.contents[
+                    `sprints/${sprint.id}/snapshots/blueprint/evaluation.json`
+                  ],
+                  {},
+                ).pass_threshold
+              }
+              onOpen={setCell}
+              onRound={(id) => {
+                setRoundId(id);
+                setMode("round");
+              }}
+            />
+          </TabsContent>
+          <TabsContent value="round">
+            <div className="round-picker">
+              {sprint.rounds.map((r) => (
+                <Button
+                  key={r.id}
+                  variant={r.id === round?.id ? "secondary" : "ghost"}
+                  onClick={() => setRoundId(r.id)}
+                >
+                  <CircleDot data-icon="inline-start" />
+                  Round {Number(r.id)}
+                  {Number(r.id) === 0 && <Badge variant="outline">基线</Badge>}
+                </Button>
+              ))}
+            </div>
+            {round && (
+              <RoundView
+                key={sprint.id + round.id}
+                sprint={sprint}
+                round={round}
+                onRaw={onRaw}
+              />
+            )}
+          </TabsContent>
+        </Tabs>
+        <Dialog
+          open={!!cell}
+          onOpenChange={(open) => {
+            if (!open) setCell(undefined);
+          }}
+        >
+          <DialogContent className="max-h-[90vh] overflow-auto sm:max-w-5xl">
+            <DialogHeader>
+              <DialogTitle>
+                Round {cell ? Number(cell.round.id) : ""} · 问题执行详情
+              </DialogTitle>
+              <DialogDescription>
+                当前选中单元格对应的真实记录；关闭后返回矩阵。
+              </DialogDescription>
+            </DialogHeader>
+            {cell?.record && (
+              <CaseDetail
+                record={cell.record}
+                backLabel="返回对比矩阵"
+                onBack={() => setCell(undefined)}
+                onRaw={(v, title) => {
+                  setCell(undefined);
+                  onRaw(v, title);
+                }}
+              />
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
@@ -1436,7 +1500,11 @@ export default function App() {
             }}
           >
             <SelectTrigger className="w-full" aria-label="切换目标项目">
-              <SelectValue placeholder="选择项目" />
+              <SelectValue placeholder="选择项目">
+                {projects.find((p) => p.id === projectId)?.name ||
+                  projectId ||
+                  "选择项目"}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>

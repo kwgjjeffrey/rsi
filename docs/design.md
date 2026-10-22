@@ -11,3 +11,9 @@
 React + shadcn/ui（Base UI）构建为单文件，由 Rust 二进制内嵌，运行无外部 CDN 或 Node 服务。项目、问题集、Sprint、Round、Case 使用独立视图；仅 Blueprint/tooling 使用文件树。Markdown 通过 react-markdown/remark-gfm 渲染，不执行嵌入 HTML；工具输出默认折叠。初版数据只有基线时明确显示未进入优化，绝不将 Round 0 当成改善轮次。源数据从既有 inspect/read API 读取，不改动记录。
 
 工作台使用一次 workspace dispatch 读取文件索引与预览内容，避免浏览器逐文件并发请求；每个文件仍复用 read 的边界校验，总预览上限 32MB。
+
+## 轮次结论矩阵
+
+迭代默认进入矩阵：每行 case_id、每列实际存在的 Round（数字排序），另有每题最近有记录的结果和相对 Round 0 的变化。最新缺测不会伪造执行，待评价/异常不会回退成旧通过。单元格回到该轮完整 case 记录，轮次表头进入对应轮次详情。输入、criteria 或 rubric_version 变化时保留该轮结论并标出不可比，不计为修复/回归。只有 Round 0 时明确未开展优化；不生成演示轮次冒充真实进化。
+
+多轮交互验收在独立 .trial 数据根进行，不进入真实项目 SQLite；测试夹具明确标注为人工 UI 数据。

@@ -161,7 +161,7 @@ dependencies = [
 
 [[package]]
 name = "rsi-runtime"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "rusqlite",
  "serde_json",

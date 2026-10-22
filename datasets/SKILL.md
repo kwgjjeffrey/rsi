@@ -26,3 +26,5 @@ DATA="$HOME/.local/state/rsi/.data"
 REQUEST="/tmp/rsi-request.json"
 RSI_DATA_DIR="$DATA" "$RSI/local-runtime/bin/rsi-runtime" dispatch "$REQUEST"
 ```
+
+矩阵结论建议在 annotation 中明确记录 `outcome: passed|failed`，与本次评价证据一致。completed 只表示标注已完成，不等于通过。没有显式 outcome 时，工作台参考 judgments 的明确结论；或使用 Sprint 冻结的 blueprint/evaluation.json 中 `pass_threshold`（可选 0..100 数字）解释分数。无阈值时只将满分/零分映射为通过/未通过，中间分数显示待确认，不猜测通过线。
