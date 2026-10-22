@@ -14,12 +14,14 @@
     "datasets",
     "evolution",
     "local-runtime/bin",
-    "local-runtime/frontend/THIRD_PARTY_NOTICES.md"
+    "local-runtime/frontend/THIRD_PARTY_NOTICES.md",
+    "normalize"
   ],
   "componentVersions": {
     "skill": "0.1.2",
     "runtime": "0.1.2",
     "gui": "0.1.2"
   },
-  "platform": "darwin-arm64"
+  "platform": "darwin-arm64",
+  "sourceRepository": "https://git.corp.kuaishou.com/ks-ep/ea-zonghe/omni/rsi"
 }

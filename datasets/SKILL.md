@@ -4,7 +4,7 @@
 每条 case record 统一包含 task_input、trajectory、annotation、reflection。初始化和 Replay 使用完全相同结构；Replay 不回写问题集。保留原始来源，文档摘要不能冒充原始工具轨迹。
 
 ## 主流程
-1. 阅读数据源，提取真实输入、执行轨迹和标注；缺少人工标注则 Agent 阅读轨迹标注，写判断依据、标注者与置信度。无法确定时写 unknown，不能强行打分。
+1. 先按[项目归一化模块](../normalize/SKILL.md)分析数据源并建设项目 normalize/cases/；读取候选，核对真实输入、执行轨迹和标注；缺少人工标注则 Agent 阅读轨迹标注，写判断依据、标注者与置信度。无法确定时写 unknown，不能强行打分。
 2. 每题完成 reflection：证据、根因假设、建议、未知项。历史评审可作为二手证据，但必须注明原始轨迹不可得和历史版本边界。
 3. 使用 import 冻结一个新版本，重复版本拒绝覆盖。新增数据产生新版本。按[迭代模块](../evolution/SKILL.md)建立 Sprint。
 

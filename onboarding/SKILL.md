@@ -6,8 +6,8 @@
 ## 主流程
 1. 确认目标源码、Skill 路径、优化目标、数据源和授权边界，读取目标 AGENTS.md/开发说明，记录 Git HEAD 和 dirty 状态。
 2. 写请求并执行 register。完成条件：project.json 和 SQLite 索引存在。已有同 ID 拒绝覆盖。
-3. 用文件工具写项目 `blueprint/overview.md`、`analysis.md`、`evaluation.json`、`replay.json`、`constraints.md`。说明默认策略：任务完成、指令遵循、执行真实性、工具使用、成本；优先修复真实失败。向用户说明默认策略，吸收其调整；将评价规则命名并版本化。
-4. 将项目特有导入/Replay 工具放 `tooling/`；目标环境必须部署的运行组件才写目标源码，遵守其目录约定。
+3. 先按[归一化脚手架模块](../normalize/SKILL.md)分析目标 Skill、数据样本和运行方式，选择场景模板与 Harness，执行 initialize；已有文件保留。再用文件工具完善项目 `blueprint/overview.md`、`analysis.md`、`evaluation.json`、`replay.json`、`constraints.md`。说明默认策略：任务完成、指令遵循、执行真实性、工具使用、成本；优先修复真实失败。向用户说明默认策略，吸收其调整；将评价规则命名并版本化。
+4. 项目数据接入、Replay 执行、原始结果转换分别放 `normalize/cases/`、`normalize/replay/`、`normalize/results/`；职责、协议和工具见[归一化模块](../normalize/SKILL.md)。已有 tooling/ 保持兼容，不重复维护；必须部署到目标环境的组件才按目标源码约定落位。
 5. 按[问题集模块](../datasets/SKILL.md)继续；无 Replay 时明确未配置，不阻塞历史归因。
 
 ## 工具输入输出
@@ -23,4 +23,4 @@ REQUEST="/tmp/rsi-request.json"
 RSI_DATA_DIR="$DATA" "$RSI/local-runtime/bin/rsi-runtime" dispatch "$REQUEST"
 ```
 
-工作台读取使用 `workspace` 操作，必填 project ID。输出 project、files、contents、errors；只聚合 Blueprint、tooling、datasets、sprints 中可预览文本，沿用 read 的路径与单文件 4MB 限制，总预览上限 32MB，部分读取失败以 errors 返回。它只读项目状态，不读取目标源码仓或修改记录。
+工作台读取使用 `workspace` 操作，必填 project ID。输出 project、files、contents、errors；只聚合 Blueprint、normalize、tooling、datasets、sprints 中可预览文本，沿用 read 的路径与单文件 4MB 限制，总预览上限 32MB，部分读取失败以 errors 返回。它只读项目状态，不读取目标源码仓或修改记录。

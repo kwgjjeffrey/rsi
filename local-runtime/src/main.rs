@@ -71,7 +71,7 @@ fn dispatch(root: &Path, db: &Connection, v: Value) -> Result<Value, String> {
         let mut total = 0usize;
         for file in info["files"].as_array().ok_or("invalid file index")? {
             let path = file["path"].as_str().ok_or("invalid file path")?;
-            if !["blueprint/", "tooling/", "datasets/", "sprints/"]
+            if !["blueprint/", "normalize/", "tooling/", "datasets/", "sprints/"]
                 .iter()
                 .any(|p| path.starts_with(p))
             {

@@ -7,7 +7,7 @@
 1. 请求 create-sprint，冻结问题集和 Blueprint。必填 project/sprint/dataset/version；source 记录 Git HEAD、dirty 状态和历史来源，budget 记录轮次、时间、成本上限。工具输出 Sprint 路径，已有 Sprint 拒绝覆盖。
 2. 阅读 Round 0 所有 case reflection，按需回查轨迹和代码，写 `rounds/000/reflection.md`；区分已证实根因和假设。
 3. 在 `rounds/001/plan.md` 写改进假设、改动、验证、停止条件，按目标仓约定修改并验证。不触碰已有无关改动。
-4. 配置 Harness adapter，执行 replay；每题启动一个新进程，适配器必须真正创建新 Session，返回 session_id、loaded_skill_digest、数组 trajectory。不得把 annotation/reference/reflection 传入被测会话。Agent 需核对实际加载内容，fresh_session 声明本身不是隔离证明。
+4. 按[归一化模块](../normalize/SKILL.md)建设项目 normalize/replay/ 与 normalize/results/，配置 blueprint/replay.json 的 normalization_protocol=1、fresh_session=true。执行 replay；每题启动一个新进程，适配器必须真正创建新 Session，返回 session_id、loaded_skill_digest、数组 trajectory。不得把 annotation/reference/reflection 传入被测会话。Agent 需核对实际加载内容，fresh_session 声明本身不是隔离证明。
 5. 使用独立评价上下文，按冻结规则逐题补齐 annotation 和 reflection；执行失败单列，不能假装能力失败或偷偷排除分母。
 6. 执行 compare，阅读所有 case reflection 后写本轮整体 reflection.md，引用 case_id，汇总共性根因、回归和优先级。决定接受、回退、继续或按预算停止。当前比较基线为 Round 0；上一轮与最佳轮交互视图尚未提供。
 
@@ -24,3 +24,5 @@ python3 "$RSI/evolution/scripts/manage_evolution_round.py" compare --project-roo
 ```
 
 CLI 不自动调用修改 Agent 或评价 Agent；消费此 Skill 的 Agent 负责完整循环和预算判断。未知结果先核对，不重复发起有副作用的任务。
+
+新项目 Replay 配置为 `{"normalization_protocol":1,"fresh_session":true}`，实际入口由项目 normalize/manifest.json 选择。命令先执行项目 replay 入口得到原始信封，再执行 results 转换；每题 raw/ 保留信封、轨迹和标准结果，record.json 仍使用初始化同构结构。沿用旧 command 配置时保持旧调用方式。两种路径都保留原输入、criteria 和 rubric_version，重新评价，不沿用原分数。

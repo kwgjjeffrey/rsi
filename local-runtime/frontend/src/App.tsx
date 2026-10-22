@@ -1314,7 +1314,7 @@ function Blueprint({
   onRaw: (v: any, title?: string) => void;
 }) {
   const files = workspace.files.filter((f) =>
-    /^(blueprint|tooling)\//.test(f.path),
+    /^(blueprint|normalize|tooling)\//.test(f.path),
   );
   const [selected, setSelected] = useState(
     files.some((f) => f.path === "blueprint/analysis.md")
