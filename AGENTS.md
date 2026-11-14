@@ -1,6 +1,6 @@
 # Development
 
-Read docs/skill-authoring.md. Keep consumer SKILL.md and development AGENTS.md separate. Add actual business modules and verification before advertising capabilities. Installed tools must never import this checkout. The source repository is https://git.corp.kuaishou.com/ks-ep/ea-zonghe/omni/rsi. GitLab is the canonical source remote. GitHub release tooling remains a legacy scaffold and is not a published installation channel. For ongoing Skill engineering, use the independently installed Awesome Skill Maker release artifact and read its SKILL.md; never import its development checkout. Acquire verified artifacts from https://github.com/kwgjjeffrey/awesome-skill-maker/releases when unavailable.
+Read docs/skill-authoring.md. Keep consumer SKILL.md and development AGENTS.md separate. Add actual business modules and verification before advertising capabilities. Installed tools must never import this checkout. The source and release repository is https://github.com/kwgjjeffrey/rsi for this distribution. Choose GitHub or GitLab per project/user instructions; do not hard-code GitLab as the universal publishing policy. For ongoing Skill engineering, use the independently installed Awesome Skill Maker release artifact and read its SKILL.md; never import its development checkout. Acquire verified artifacts from https://github.com/kwgjjeffrey/awesome-skill-maker/releases when unavailable.
 
 ## Local data hygiene
 

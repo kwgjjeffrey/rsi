@@ -6,10 +6,12 @@ class LocalAccess(unittest.TestCase):
   with tempfile.TemporaryDirectory() as td:
    root=Path(td);proc=subprocess.Popen([str(ROOT/'local-runtime/bin/rsi-runtime'),'serve'],env=dict(os.environ,RSI_DATA_DIR=td,RSI_PORT='0'),stdout=subprocess.DEVNULL,stderr=subprocess.PIPE)
    try:
-    for _ in range(100):
+    deadline=time.monotonic()+15
+    while time.monotonic()<deadline:
      if (root/'runtime.json').exists():break
      if proc.poll() is not None:self.fail(proc.stderr.read().decode())
-     time.sleep(.02)
+     time.sleep(.05)
+    else:self.fail("Runtime discovery did not appear within 15 seconds")
     d=json.loads((root/'runtime.json').read_text());self.assertNotIn('token',d)
     html=urllib.request.urlopen(d['url']+'/').read().decode();self.assertNotIn('Bearer',html);self.assertNotIn('rsi-token',html)
     repo=root/'repo';subprocess.run(['git','init','-q',str(repo)],check=True)

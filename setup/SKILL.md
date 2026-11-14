@@ -21,7 +21,7 @@ python3 "$RSI/setup/scripts/manage_rsi_runtime.py" stop --data-dir "$DATA"
 
 
 ### 安装器调用
-获得可信归档与 manifest 后，使用外部 store；归档和 manifest 路径均必填，target basename 必须为 rsi。install 校验完整性后激活稳定链接，拒绝覆盖未知目录；upgrade 下载公开 latest（当前未发布），rollback 只切换制品，不回滚数据库。
+获得可信归档与 manifest 后，使用外部 store；归档和 manifest 路径均必填，target basename 必须为 rsi。install 校验完整性后激活稳定链接，拒绝覆盖未知目录；upgrade 从项目 GitHub Releases 固定 latest 的 tag 后下载并验证，rollback 只切换制品，不回滚数据库。
 
 ```bash
 RSI="$HOME/.agents/skills/rsi"
@@ -33,4 +33,4 @@ python3 "$RSI/setup/scripts/manage_skill_installation.py" check --target "$RSI"
 python3 "$RSI/setup/scripts/manage_skill_installation.py" rollback --target "$RSI" --store "$STORE"
 ```
 
-首次未安装时使用同一 Release 的 bootstrap，先按[安装提示词](install-skill-prompt.md)校验，不要求目标已存在。失败保留当前安装，遇到未知目录不得自行覆盖。
+首次未安装时使用同一 Release 的 bootstrap，先按[安装提示词](install-skill-prompt.md)校验，不要求目标已存在。`check --target` 显示已安装版本、最新版本和可用更新；更新查询失败仅报告诊断，不阻止使用当前安装。失败保留当前安装，遇到未知目录不得自行覆盖。

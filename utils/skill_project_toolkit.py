@@ -305,6 +305,26 @@ def fetch(url, output, binary=False):
     subprocess.run(args, check=True)
 
 
+
+def available_update(data):
+    """Read the product's GitHub channel without changing an installed version."""
+    current = data['version']
+    try:
+        with tempfile.TemporaryDirectory(prefix='skill-update-check-') as tmp:
+            release_path = Path(tmp) / 'latest.json'
+            fetch('https://api.github.com/repos/' + data['repository'] + '/releases/latest', release_path)
+            tag = read_json(release_path).get('tag_name', '')
+            if not re.fullmatch(r'v\d+\.\d+\.\d+', tag):
+                raise ValueError('Unexpected latest release tag')
+            latest = tag[1:]
+            newer = tuple(map(int, latest.split('.'))) > tuple(map(int, current.split('.')))
+            return {'status': 'available' if newer else 'up_to_date', 'installed': current, 'latest': latest,
+                    'updateAvailable': newer, 'url': 'https://github.com/' + data['repository'] + '/releases/tag/' + tag}
+    except (ValueError, OSError, KeyError, TypeError, subprocess.CalledProcessError):
+        return {'status': 'unavailable', 'installed': current,
+                'message': 'Update check unavailable; the current installation is unchanged.'}
+
+
 def upgrade(repository, target, store):
     if not REPOSITORY.fullmatch(repository):
         raise ValueError('Invalid repository')
@@ -456,7 +476,7 @@ def main(argv=None):
                     raise ValueError('Target is not a managed installed link')
                 store = target.resolve().parent.parent
                 receipt = check_owner(Path(os.path.abspath(target)), store, configuration(target)['name'])
-                result.update(version=configuration(target)['version'], receipt=receipt)
+                result.update(version=configuration(target)['version'], receipt=receipt, update=available_update(configuration(target)))
         print(json.dumps(result, ensure_ascii=False, indent=2))
         if result.get('ready') is False:
             sys.exit(1)
