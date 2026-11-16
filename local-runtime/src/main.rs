@@ -69,11 +69,40 @@ fn dispatch(root: &Path, db: &Connection, v: Value) -> Result<Value, String> {
         let mut contents = serde_json::Map::new();
         let mut errors = Vec::new();
         let mut total = 0usize;
+        // Consolidated historical Sprints remain readable by exact references,
+        // but must not consume the workspace's bulk preview budget twice.
+        let archived: Vec<String> = info["files"]
+            .as_array()
+            .ok_or("invalid file index")?
+            .iter()
+            .filter_map(|file| {
+                let path = file["path"].as_str()?;
+                if !path.starts_with("sprints/") || !path.ends_with("/sprint.json") {
+                    return None;
+                }
+                let meta = read(&base.join(path)).ok()?;
+                meta["archived_into"]
+                    .as_str()
+                    .filter(|value| !value.is_empty())
+                    .map(|_| path.trim_end_matches("sprint.json").to_owned())
+            })
+            .collect();
         for file in info["files"].as_array().ok_or("invalid file index")? {
             let path = file["path"].as_str().ok_or("invalid file path")?;
-            if !["blueprint/", "normalize/", "tooling/", "datasets/", "sprints/"]
-                .iter()
-                .any(|p| path.starts_with(p))
+            if archived.iter().any(|prefix| path.starts_with(prefix))
+                && !path.ends_with("/sprint.json")
+            {
+                continue;
+            }
+            if ![
+                "blueprint/",
+                "normalize/",
+                "tooling/",
+                "datasets/",
+                "sprints/",
+            ]
+            .iter()
+            .any(|p| path.starts_with(p))
             {
                 continue;
             }

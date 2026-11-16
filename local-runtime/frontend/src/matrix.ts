@@ -30,7 +30,7 @@ export const changeLabels: Record<Change, string> = {
   regressed: "新回归",
   "still-failing": "仍未通过",
   unchanged: "结论不变",
-  baseline: "仅有基线",
+  baseline: "仅一次实测",
   incomparable: "口径变化",
   unresolved: "待确认",
   new: "新增问题",
@@ -40,6 +40,7 @@ export interface MatrixRow {
   title: string;
   cells: MatrixCell[];
   latest?: MatrixCell;
+  baseline?: MatrixCell;
   change: Change;
 }
 function explicit(value: unknown): Verdict | undefined {
@@ -54,7 +55,8 @@ function explicit(value: unknown): Verdict | undefined {
     value === false ||
     value === "failed" ||
     value === "fail" ||
-    value === "failure"
+    value === "failure" ||
+    value === "needs_improvement"
   )
     return "fail";
 }
@@ -134,24 +136,43 @@ export function matrix(
     ...new Set(rounds.flatMap((r) => r.records.map((c) => c.case_id))),
   ];
   const rows = ids.map((id) => {
-    const baseline = rounds
-      .find((r) => Number(r.id) === 0)
-      ?.records.find((c) => c.case_id === id);
+    // Round 0 can be an unexecuted question library. Compare actual outcomes,
+    // never turn its pending annotations or prerequisite errors into a baseline.
+    const firstMeasured = rounds.find((r) => {
+      const v = verdict(
+        r.records.find((c) => c.case_id === id),
+        passThreshold,
+      );
+      return v === "pass" || v === "fail";
+    });
+    const baseline = firstMeasured?.records.find((c) => c.case_id === id);
     const cells = rounds.map((round) => {
       const record = round.records.find((c) => c.case_id === id);
       return {
         round,
         record,
-        verdict: verdict(record, passThreshold),
+        verdict:
+          Number(round.id) === 0 &&
+          record?.annotation?.status === "pending" &&
+          !record?.execution?.status
+            ? ("missing" as Verdict)
+            : verdict(record, passThreshold),
         comparable:
           !!record &&
           (!baseline || record === baseline || comparable(baseline, record)),
       };
     });
     const latest = [...cells].reverse().find((c) => c.record);
-    const base = cells.find((c) => Number(c.round.id) === 0);
+    const base = cells.find((c) => c.round === firstMeasured);
     let change: Change = "unresolved";
-    if (!baseline) change = "new";
+    if (!baseline) change = "unresolved";
+    else if (
+      latest === base &&
+      !rounds
+        .find((r) => Number(r.id) === 0)
+        ?.records.some((c) => c.case_id === id)
+    )
+      change = "new";
     else if (latest === base) change = "baseline";
     else if (latest && !latest.comparable) change = "incomparable";
     else if (latest && base) {
@@ -165,7 +186,14 @@ export function matrix(
         change = "unchanged";
     }
     const first = cells.find((c) => c.record)?.record!;
-    return { id, title: caseTitle(first), cells, latest, change };
+    return {
+      id,
+      title: caseTitle(first),
+      cells,
+      latest,
+      baseline: base,
+      change,
+    };
   });
   return { rounds, rows };
 }

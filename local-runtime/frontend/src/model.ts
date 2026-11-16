@@ -134,7 +134,10 @@ export function sprints(w: Workspace): Sprint[] {
             id: n,
             path: p,
             records: recordsAt(w, p),
-            meta: parse<Json>(w.contents[p + "/round.json"], {}),
+            meta: {
+              ...parse<Json>(w.contents[p + "/selection.json"], {}),
+              ...parse<Json>(w.contents[p + "/round.json"], {}),
+            },
             reflection: w.contents[p + "/reflection.md"] || "",
             plan: w.contents[p + "/plan.md"] || "",
             comparison: parse(w.contents[p + "/comparison.json"], undefined),
@@ -147,6 +150,7 @@ export function sprints(w: Workspace): Sprint[] {
         report: w.contents[prefix + "/report.md"] || "",
       };
     })
+    .filter((sprint) => !sprint.meta.archived_into)
     .sort((a, b) => b.id.localeCompare(a.id));
 }
 export function score(c: CaseRecord): number | undefined {

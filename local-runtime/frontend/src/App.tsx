@@ -782,9 +782,20 @@ function RoundView({
           </p>
         </div>
       )}
+      {Array.isArray(round.meta.cases) && (
+        <p className="text-sm text-muted-foreground">
+          {round.meta.repair ? "修复与复测" : "新增采样"} · 本轮{" "}
+          {round.meta.cases.length} 题（{round.meta.cases.join("、")}
+          ）。未选中的题没有本轮执行结果。
+        </p>
+      )}
       {comparison && (
         <Section
-          title={`相对 Round ${comparison.baseline_round ?? 0}`}
+          title={
+            comparison.baseline_strategy === "previous_measurement"
+              ? "相对各题上次实测"
+              : `相对 Round ${comparison.baseline_round ?? 0}`
+          }
           description={`共 ${comparison.total} 题，其中 ${comparison.comparable} 题可比；不可比项单列。`}
         >
           {typeof comparison.baseline_mean === "number" &&
@@ -817,6 +828,7 @@ function RoundView({
                       mixed: "改善与退步并存",
                       unchanged: "不变",
                       incomparable: "不可比",
+                      new: "首次执行",
                     } as Json
                   )[key]
                 }{" "}

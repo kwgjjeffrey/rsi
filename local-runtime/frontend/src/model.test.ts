@@ -52,3 +52,29 @@ test("异常执行与越界分数不能被展示为有效得分", () => {
   assert.equal(score(record("invalid", 101)), undefined);
   assert.equal(score(record("invalid", -1)), undefined);
 });
+
+test("归档Sprint不重复列为任务，Round读取冻结的选题信息", () => {
+  const paths = {
+    "sprints/old/sprint.json": '{"archived_into":"daily"}',
+    "sprints/old/rounds/001/cases/a/record.json": JSON.stringify(
+      record("a", 0),
+    ),
+    "sprints/daily/sprint.json": '{"title":"Daily"}',
+    "sprints/daily/rounds/002/selection.json": '{"repair":true,"cases":["a"]}',
+    "sprints/daily/rounds/002/cases/a/record.json": JSON.stringify(
+      record("a", 100),
+    ),
+  };
+  const w: Workspace = {
+    project: { id: "p", repo: "/repo" },
+    files: Object.keys(paths).map((path) => ({ path, bytes: 1 })),
+    contents: paths,
+    errors: [],
+  };
+  assert.deepEqual(
+    sprints(w).map((s) => s.id),
+    ["daily"],
+  );
+  assert.deepEqual(sprints(w)[0].rounds[0].meta.cases, ["a"]);
+  assert.equal(sprints(w)[0].rounds[0].meta.repair, true);
+});

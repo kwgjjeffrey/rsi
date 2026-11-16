@@ -30,4 +30,11 @@ class Contract(unittest.TestCase):
   self.call({'op':'read','project':'target','path':'blueprint/missing.md'},False)
  def test_duplicate_cases_rejected(self):
   self.register();self.call({'op':'import','project':'target','dataset':'bad','version':'v1','records':[self.record(),self.record()]},False)
+ def test_archived_sprints_remain_readable_without_duplicate_bulk_payload(self):
+  self.register();base=self.root/'data/projects/target';old=base/'sprints/old';old.mkdir();(old/'sprint.json').write_text('{"archived_into":"daily"}');(old/'evidence.md').write_text('original evidence')
+  current=base/'sprints/daily';current.mkdir();(current/'sprint.json').write_text('{}');(current/'reflection.md').write_text('current analysis')
+  result=self.call({'op':'workspace','project':'target'})
+  self.assertIn('sprints/old/sprint.json',result['contents']);self.assertNotIn('sprints/old/evidence.md',result['contents']);self.assertIn('sprints/daily/reflection.md',result['contents'])
+  self.assertEqual(self.call({'op':'read','project':'target','path':'sprints/old/evidence.md'})['content'],'original evidence')
+
 if __name__=='__main__':unittest.main()

@@ -93,3 +93,33 @@ test("只有基线不算优化，新问题不算修复", () => {
   assert.equal(rows[0].change, "baseline");
   assert.equal(rows[1].change, "new");
 });
+
+test("未执行题库不是实测基线，修复与首次失败比较，未来题不伪造通过", () => {
+  const pending = rec("a", "passed");
+  pending.annotation.status = "pending";
+  const future = structuredClone(pending);
+  future.case_id = "future";
+  const blocked = structuredClone(pending);
+  blocked.execution = { status: "error" };
+  const rows = matrix(
+    sprint([
+      round("000", [pending, future]),
+      round("001", [blocked]),
+      round("002", [rec("a", "failed")]),
+      round("003", [rec("a", "passed")]),
+      round("004", [rec("b", "passed")]),
+    ]),
+  ).rows;
+  const a = rows.find((r) => r.id === "a")!;
+  assert.equal(a.baseline?.round.id, "002");
+  assert.equal(a.change, "fixed");
+  assert.equal(a.cells[4].verdict, "missing");
+  assert.equal(a.latest?.round.id, "003");
+  assert.equal(rows.find((r) => r.id === "future")?.latest?.verdict, "missing");
+});
+test("需改进是未通过，不能因为未提供综合分而显示未知", () => {
+  const r = rec("a", "passed");
+  delete r.annotation.outcome;
+  r.annotation.judgments = [{ result: "needs_improvement" }];
+  assert.equal(verdict(r), "fail");
+});

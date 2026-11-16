@@ -45,9 +45,18 @@ class Campaign(unittest.TestCase):
    first=cli('prepare');self.assertEqual(first['cases'],['a']);self.assertIn('active window',cli('prepare',ok=False))
    round_dir=project/f'sprints/{first["sprint"]}/rounds/001';file=round_dir/'cases/a/record.json';file.parent.mkdir(parents=True);file.write_text(json.dumps(record('a','failed')))
    self.assertIn('reflection.md',cli('assess',ok=False));(round_dir/'reflection.md').write_text('Fixture failure proves the planned change is still needed.');self.assertEqual(cli('assess')['decision'],'repair')
-   repair=cli('prepare');self.assertTrue(repair['repair']);self.assertEqual(repair['cases'],['a']);round_dir=project/f'sprints/{repair["sprint"]}/rounds/001';file=round_dir/'cases/a/record.json';file.parent.mkdir(parents=True);file.write_text(json.dumps(record('a')));(round_dir/'reflection.md').write_text('Fixture corrected behavior; existing failure cleared.')
+   repair=cli('prepare');self.assertTrue(repair['repair']);self.assertEqual(repair['cases'],['a']);self.assertEqual(repair['sprint'],first['sprint']);self.assertEqual(repair['round'],2);round_dir=project/f'sprints/{repair["sprint"]}/rounds/002';file=round_dir/'cases/a/record.json';file.parent.mkdir(parents=True);file.write_text(json.dumps(record('a')));(round_dir/'reflection.md').write_text('Fixture corrected behavior; existing failure cleared.')
    # Changing live grading policy cannot alter a frozen window's decision.
    (project/'blueprint/evaluation.json').write_text(json.dumps({'qualification':{'mode':'numeric'},'pass_threshold':100}));self.assertEqual(cli('assess')['decision'],'expand');(project/'blueprint/evaluation.json').write_text('{}')
-   self.assertEqual(cli('prepare')['cases'],['b','c'])
+   expanded=cli('prepare');self.assertEqual(expanded['cases'],['b','c']);self.assertEqual(expanded['round'],3)
+   self.assertEqual(list((project/'sprints').iterdir()),[project/'sprints/daily'])
+   self.assertEqual(len(list((project/'sprints/daily/rounds/000/cases').iterdir())),6)
+   self.assertEqual(json.loads((project/'sprints/daily/rounds/003/selection.json').read_text())['cases'],['b','c'])
+   self.assertFalse((project/'datasets/campaign_windows').exists())
+   # Only selected cases reach the independent replay adapter.
+   adapter=base/'adapter.py';adapter.write_text('import sys,json; q=json.load(sys.stdin); print(json.dumps({"trajectory":[],"session_id":q["case_id"],"loaded_skill_digest":"fixture"}))')
+   (project/'blueprint/replay.json').write_text(json.dumps({'fresh_session':True,'command':[sys.executable,str(adapter)]}))
+   cli('run');self.assertEqual(sorted(p.name for p in(project/'sprints/daily/rounds/003/cases').iterdir()),['b','c'])
+   self.assertTrue((project/'sprints/daily/rounds/001/cases/a/record.json').exists())
 
 if __name__=='__main__':unittest.main()

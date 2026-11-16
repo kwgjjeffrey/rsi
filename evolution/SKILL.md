@@ -3,6 +3,8 @@
 ## 目的、交付与约束
 每轮保留问题归因、改进计划、源码版本、逐题记录和对比。先按[归因与改进方法](analyze-and-plan.md)形成项目的 `blueprint/analysis.md` 和 `blueprint/improvement-plan.md`，再改代码。文件引用、分数和重复逐题摘要不能替代这两份文档。
 
+**一个 Sprint 是同一目标、冻结题库和评分标准下的一次连续进化任务；一个 Round 是一轮评估、归因与修复验证。Fibonacci 窗口只决定本轮选题，不创建新 Sprint。** 首次准备、失败停留、修复复测及扩大样本，都在同一 Sprint 追加 Round。只有切换目标或必须重新冻结题库/评分标准时才建立新的 Sprint。
+
 默认按1、2、3、5、8…题的小窗口推进，超过50%不合格或执行/评价不完整就停止扩样，先归因、修复并复测已观察问题。每批更新分析和计划，不等整题库跑完。项目约定的维度可以是分类判断，不强制总分。
 
 ## 主流程
@@ -11,7 +13,7 @@
 3. 在 `rounds/001/plan.md` 写改进假设、改动、验证、停止条件，按目标仓约定修改并验证。不触碰已有无关改动。
 4. 按[归一化模块](../normalize/SKILL.md)建设项目 normalize/replay/ 与 normalize/results/，配置 blueprint/replay.json 的 normalization_protocol=1、fresh_session=true。执行 replay；每题启动一个新进程，适配器必须真正创建新 Session，返回 session_id、loaded_skill_digest、数组 trajectory。不得把 annotation/reference/reflection 传入被测会话。Agent 需核对实际加载内容，fresh_session 声明本身不是隔离证明。
 5. 使用独立评价上下文，按冻结规则逐题补齐 annotation 和 reflection；执行失败单列，不能假装能力失败或偷偷排除分母。逐项分类评价可不设score；不为使用比较工具编一个综合数。
-6. 执行 compare，阅读所有 case reflection 后写本轮整体 reflection.md，引用 case_id，汇总共性根因、回归和优先级。决定接受、回退、继续或按预算停止。默认比较 Round 0；用 --baseline-round 指定更早的实际轮次。新窗口的执行前标注不是已测基线，不能声称提升。
+6. 执行 compare，阅读所有 case reflection 后写本轮整体 reflection.md，引用 case_id，汇总共性根因、回归和优先级。决定接受、回退、继续或按预算停止。Fibonacci轮次默认与每题上一次实测比较，首次执行单列；用 --baseline-round 指定更早的实际轮次。Round 0中的未执行题库不算已测基线，不能声称提升。
 
 ## 工具
 create-sprint 请求例：`{"op":"create-sprint","project":"my_skill","sprint":"s001","dataset":"seed","version":"v001","source":{"revision":"实际 Git HEAD"},"budget":{"max_rounds":3}}`。通过[接入模块 dispatch](../onboarding/SKILL.md)执行，写快照而不改源码。
@@ -29,7 +31,7 @@ CLI 不自动调用修改 Agent 或评价 Agent；消费此 Skill 的 Agent 负�
 
 ## Fibonacci窗口
 
-`manage_evolution_campaign.py` 从冻结问题库准备一个窗口，`run`只运行该窗口；`assess`读取已完成的项目评价及整体反思，决定扩样、修复或执行阻塞。没有分析/改进计划不能准备窗口，没有真实评价不能扩样。修复窗口保留旧的真实记录作基线，不覆盖既有轮次。
+`manage_evolution_campaign.py` 在同一Sprint中追加一个Round，从完整冻结题库中选取本轮窗口，`run`只运行该窗口；`assess`读取已完成的项目评价及整体反思，决定扩样、修复或执行阻塞。没有分析/改进计划不能准备窗口，没有真实评价不能扩样。修复对比引用此前的真实Round；未选中的题保持未执行，不把旧结果复制为本轮执行。每轮保存selection.json、当时的分析/计划、轨迹与评价。
 
 ```bash
 RSI="$HOME/.agents/skills/rsi"
@@ -42,6 +44,16 @@ python3 "$RSI/evolution/scripts/manage_evolution_campaign.py" run --project-root
 python3 "$RSI/evolution/scripts/manage_evolution_campaign.py" assess --project-root "$PROJECT" --campaign daily
 ```
 
-只有expand才进入新问题窗口；repair和hold_execution只准备已有未解决题。状态在项目 `blueprint/campaigns/`，可在工作台预览。工具不自动运行下一批、不修改评分、不把文件存在当成分析质量通过。
+只有expand才选取下一个新题窗口，仍然追加到同一Sprint；repair和hold_execution只准备已有未解决题。状态在项目 `blueprint/campaigns/`，可在工作台预览。工具不自动运行下一批、不修改评分、不把文件存在当成分析质量通过。
 
 新项目 Replay 配置为 `{"normalization_protocol":1,"fresh_session":true}`，实际入口由项目 normalize/manifest.json 选择。命令先执行项目 replay 入口得到原始信封，再执行 results 转换；每题 raw/ 保留信封、轨迹和标准结果，record.json 仍使用初始化同构结构。沿用旧 command 配置时保持旧调用方式。两种路径都保留原输入、criteria 和 rubric_version，重新评价，不沿用原分数。
+
+### 整理旧版逐窗口Sprint
+
+旧版错误地把每个窗口记成独立Sprint。先停止正在执行的旧窗口，再通过已安装入口运行迁移。迁移把真实执行按时间序列整理成Round，保留原始记录字节、证据引用和评分；旧Sprint只归档，不再作为独立任务重复列出。迁移保留状态和旧元信息备份，不执行Agent、不重新评分。重复调用复用已整理结果。
+
+```bash
+python3 "$RSI/evolution/scripts/manage_evolution_campaign.py" migrate --project-root "$PROJECT" --campaign daily --sprint daily --title "日常业务对话迭代"
+```
+
+矩阵按各题首次有效实测判断修复/回归，异常和待标注仍显示原状态。不同题或不同评分口径不得合并为一次提升。旧证据保留原地址，可点击查看。

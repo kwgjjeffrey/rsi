@@ -117,7 +117,9 @@ export default function RoundMatrix({
             <CardDescription>已记录轮次</CardDescription>
             <CardTitle>
               {data.rounds.length}{" "}
-              <span className="metric-unit">含基线 · 优化 {optimized} 轮</span>
+              <span className="metric-unit">
+                含初始化 · 评估与修复 {optimized} 轮
+              </span>
             </CardTitle>
           </CardHeader>
         </Card>
@@ -132,7 +134,7 @@ export default function RoundMatrix({
         </Card>
         <Card>
           <CardHeader>
-            <CardDescription>相对基线</CardDescription>
+            <CardDescription>相对各题首次实测</CardDescription>
             <CardTitle>
               <span className="trend-fixed">
                 {data.rows.filter((r) => r.change === "fixed").length} 修复
@@ -226,7 +228,9 @@ export default function RoundMatrix({
           <div className="conclusion-matrix">
             <Table>
               <TableCaption>
-                最近结果 =
+                Round 0 可为未执行的问题库，修复 /
+                回归相对各题首次有效实测；后续未选中的题显示“未执行”，不复制旧结果。最近结果
+                =
                 每题最近一次有记录的结论（包括异常和待标注）；缺测显示“未执行”。口径变化时保留本轮灯号，但不计为修复或回归。中间分数需明确通过阈值；没有阈值时，仅满分
                 / 零分或明确结论亮绿 / 红灯。
               </TableCaption>
@@ -250,6 +254,12 @@ export default function RoundMatrix({
                         )}
                         <ArrowRight data-icon="inline-end" />
                       </Button>
+                      {Array.isArray(r.meta.cases) && (
+                        <small>
+                          {r.meta.repair ? "修复复测" : "新增采样"} ·{" "}
+                          {r.meta.cases.length} 题
+                        </small>
+                      )}
                       <small>
                         {
                           r.records.filter(
@@ -260,7 +270,7 @@ export default function RoundMatrix({
                       </small>
                     </TableHead>
                   ))}
-                  <TableHead>相对基线变化</TableHead>
+                  <TableHead>相对首次实测变化</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -291,6 +301,11 @@ export default function RoundMatrix({
                       <Badge variant="outline" data-change={row.change}>
                         {changeLabels[row.change]}
                       </Badge>
+                      {row.baseline && (
+                        <div className="text-xs text-muted-foreground">
+                          首次实测 Round {Number(row.baseline.round.id)}
+                        </div>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}
