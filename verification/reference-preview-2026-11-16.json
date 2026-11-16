@@ -1,0 +1,44 @@
+{
+  "verifiedAt": "2026-11-16",
+  "sourceCommit": "6adc11d13477ad496d73b178837c09d3e4c17857",
+  "release": "0.1.4",
+  "componentVersions": {
+    "skill": "0.1.4",
+    "runtime": "0.1.3",
+    "gui": "0.1.3"
+  },
+  "distribution": {
+    "release": "https://github.com/kwgjjeffrey/rsi/releases/tag/v0.1.4",
+    "consumerBranch": "distribution",
+    "consumerCommit": "21addd6314def6294f27c9a4fea71de54ae0db2d",
+    "install": "npx skills add https://github.com/kwgjjeffrey/rsi/tree/distribution --skill rsi --global --yes",
+    "installedArchiveFilesMatched": 41
+  },
+  "checks": {
+    "frontendTests": 11,
+    "pythonRuntimeTests": 13,
+    "stagedInstalledArtifactBrowser": [
+      "assessment citation Markdown",
+      "nested relative JSON",
+      "Escape and focus return at both modal levels",
+      "missing file reports actual API error",
+      "empty source",
+      "390px width",
+      "reflection Markdown link"
+    ],
+    "runningWorkbenchBrowser": {
+      "realProject": true,
+      "realCase": "asset_b_20261116 Round1 B05",
+      "reviewJsonPreview": true,
+      "canonicalTranscriptPreview": true,
+      "returnToSameCase": true,
+      "pageErrors": 0
+    }
+  },
+  "evidenceLocation": ".trial/reference-preview (development-only, not shipped)",
+  "limits": [
+    "Only the current project data root is previewed; external file paths stay text.",
+    "The shared read API retains its4MB per-file limit.",
+    "Original grading records are not rewritten by the preview feature."
+  ]
+}
