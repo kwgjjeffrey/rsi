@@ -41,7 +41,17 @@ Replay 返回原始结果信封：protocol_version=1、status=completed|error。
 
 失败输出 execution.status=error 和 error 字符串，不要求伪造会话 ID。results 不能输出 task_input、annotation 或 reflection。成功时必须有会话 ID、指纹；这只校验协议，实际是否加载目标 Skill 要通过轨迹另行核对。默认模板明确把源码摘要标成 source snapshot，不能当加载验证已通过。
 
-RSI 最后保留原 task_input/case_id/initial_record_id，复制冻结 criteria/rubric_version，设置 annotation.status=pending、reflection=""，组装同构 record。初始标注不传给被测会话，旧分数和逐题反思不沿用。
+RSI 最后保留原 task_input/case_id/initial_record_id，以及冻结的 criteria/rubric_version/reference 和项目扩展契约，设置 annotation.status=pending、reflection=""，组装同构 record。旧 score/outcome/judgments/reason/evidence 等观察结论清空；评价上下文不传给被测会话。
+
+## 逐项评价
+
+项目可以只用分类评价，不要求总分。已完成的 annotation 必须有 rubric_version、非空逐题 reflection，并完整覆盖冻结 criteria：
+
+```json
+{"status":"completed","rubric_version":"project-v1","criteria":[{"id":"project_defined_dimension"}],"judgments":[{"criterion":"project_defined_dimension","result":"passed","reason":"Explain the observed behavior and why it meets this criterion.","evidence":[{"source":"relative/path/to/actual-trajectory.json"}]}]}
+```
+
+result 为 passed、failed 或 needs_improvement，criterion 不能重复或缺失。执行异常、未知结果和未完成评价不能作为通过结论。窗口门禁还要求逐项 reason/evidence 与本轮反思；它验证结构，不验证分析推理是否正确。只有项目明确选择数值评价时才提供 score，并配置资格阈值；RSI 不据此擅加评分维度。
 
 ## manifest
 

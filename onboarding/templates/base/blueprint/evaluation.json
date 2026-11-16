@@ -1,1 +1,8 @@
-{"version":"unconfigured-v1","status":"needs_analysis","criteria":[{"id":"task_completion","expectation":"待填写项目实际验收条件"},{"id":"truthful_execution","expectation":"最终报告与轨迹及产物一致"}],"scale":[0,100],"note":"Agent must define evidence, weights, pass conditions and unknown handling before scoring. No default pass threshold is implied."}
+{
+  "version": "unconfigured-v1",
+  "status": "needs_project_criteria",
+  "criteria": [],
+  "qualification": {"mode": "all_criteria"},
+  "overall_score": null,
+  "note": "Define the user project criteria, per-question expected behavior and ideal paths before execution. Categorical judgments do not require a scalar score. Numeric qualification requires an explicitly configured threshold; no extra default dimensions are imposed."
+}

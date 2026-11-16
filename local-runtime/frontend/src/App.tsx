@@ -685,7 +685,8 @@ function Overview({
           >
             <div className="flex flex-col gap-4">
               {[
-                ["分析策略", "blueprint/analysis.md"],
+                ["问题分析与归因", "blueprint/analysis.md"],
+                ["改进计划", "blueprint/improvement-plan.md"],
                 ["评价规则", "blueprint/evaluation.json"],
                 ["重放适配", "blueprint/replay.json"],
               ].map(([label, p]) => (
@@ -783,21 +784,28 @@ function RoundView({
       )}
       {comparison && (
         <Section
-          title="相对 Round 0"
+          title={`相对 Round ${comparison.baseline_round ?? 0}`}
           description={`共 ${comparison.total} 题，其中 ${comparison.comparable} 题可比；不可比项单列。`}
         >
-          <div className="grid grid-cols-2 gap-4">
-            {[
-              ["基线", comparison.baseline_mean],
-              ["本轮", comparison.round_mean],
-            ].map(([label, n]) => (
-              <div className="flex flex-col gap-2" key={String(label)}>
-                <span className="text-sm">{label}</span>
-                <Score value={typeof n === "number" ? n : undefined} />
-                <Progress value={typeof n === "number" ? n : 0} />
-              </div>
-            ))}
-          </div>
+          {typeof comparison.baseline_mean === "number" &&
+          typeof comparison.round_mean === "number" ? (
+            <div className="grid grid-cols-2 gap-4">
+              {[
+                ["基线", comparison.baseline_mean],
+                ["本轮", comparison.round_mean],
+              ].map(([label, n]) => (
+                <div className="flex flex-col gap-2" key={String(label)}>
+                  <span className="text-sm">{label}</span>
+                  <Score value={typeof n === "number" ? n : undefined} />
+                  <Progress value={typeof n === "number" ? n : 0} />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              按项目维度逐项比较，不换算综合分。
+            </p>
+          )}
           <div className="mt-5 flex flex-wrap gap-3">
             {Object.entries(comparison.groups || {}).map(([key, values]) => (
               <Badge variant="outline" key={key}>
@@ -806,6 +814,7 @@ function RoundView({
                     {
                       improved: "改善",
                       regressed: "回归",
+                      mixed: "改善与退步并存",
                       unchanged: "不变",
                       incomparable: "不可比",
                     } as Json
@@ -1300,7 +1309,8 @@ function Blueprint({
   const content = workspace.contents[selected];
   const labels: Record<string, string> = {
     "overview.md": "项目目标与范围",
-    "analysis.md": "分析策略",
+    "analysis.md": "问题分析与归因",
+    "improvement-plan.md": "改进计划",
     "constraints.md": "约束与停止条件",
     "evaluation.json": "评价规则",
     "replay.json": "Replay 配置",
