@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "name": "rsi",
+  "version": "0.1.4",
+  "repository": "kwgjjeffrey/rsi",
+  "artifactPaths": [
+    "SKILL.md",
+    "skill-project.json",
+    "LICENSE",
+    "setup",
+    "release",
+    "utils",
+    "onboarding",
+    "datasets",
+    "evolution",
+    "local-runtime/bin",
+    "local-runtime/frontend/THIRD_PARTY_NOTICES.md",
+    "normalize"
+  ],
+  "componentVersions": {
+    "skill": "0.1.4",
+    "runtime": "0.1.3",
+    "gui": "0.1.3"
+  },
+  "platform": "darwin-arm64",
+  "sourceRepository": "https://github.com/kwgjjeffrey/rsi"
+}

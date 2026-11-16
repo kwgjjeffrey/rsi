@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "name": "rsi",
+  "version": "0.1.4",
+  "repository": "kwgjjeffrey/rsi",
+  "sourceCommit": "6adc11d13477ad496d73b178837c09d3e4c17857",
+  "asset": "rsi-0.1.4.tgz",
+  "size": 1677408,
+  "sha256": "541030968e6057bed41f872be07da2bea8492ebac9012434e0e9b44837909410",
+  "componentVersions": {
+    "skill": "0.1.4",
+    "runtime": "0.1.3",
+    "gui": "0.1.3"
+  },
+  "platform": "darwin-arm64",
+  "bootstrap": {
+    "asset": "bootstrap_skill_installation.py",
+    "size": 2320,
+    "sha256": "ae9b964f293b659771517fdbe249ed3e9b27ff55e8e9ce05de839511c8450aec"
+  }
+}
