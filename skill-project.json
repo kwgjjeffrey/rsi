@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "name": "rsi",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "repository": "kwgjjeffrey/rsi",
   "artifactPaths": [
     "SKILL.md",
@@ -18,9 +18,9 @@
     "normalize"
   ],
   "componentVersions": {
-    "skill": "0.1.3",
-    "runtime": "0.1.2",
-    "gui": "0.1.2"
+    "skill": "0.1.4",
+    "runtime": "0.1.3",
+    "gui": "0.1.3"
   },
   "platform": "darwin-arm64",
   "sourceRepository": "https://github.com/kwgjjeffrey/rsi"

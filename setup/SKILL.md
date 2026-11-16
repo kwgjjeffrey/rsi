@@ -34,3 +34,7 @@ python3 "$RSI/setup/scripts/manage_skill_installation.py" rollback --target "$RS
 ```
 
 首次未安装时使用同一 Release 的 bootstrap，先按[安装提示词](install-skill-prompt.md)校验，不要求目标已存在。`check --target` 显示已安装版本、最新版本和可用更新；更新查询失败仅报告诊断，不阻止使用当前安装。失败保留当前安装，遇到未知目录不得自行覆盖。
+
+### 标准安装和更新入口
+
+使用 `npx skills add https://github.com/kwgjjeffrey/rsi/tree/distribution --skill rsi --global --yes` 安装完整消费制品。使用 `npx skills check` 检查更新，`npx skills update rsi --global --yes` 更新。该分支从校验通过的 Release 归档生成，包含 runtime；主分支保留开发源码。更新前 stop、更新后 start，继续使用同一个外部数据根。下方 archive 安装器保留作离线恢复用途。

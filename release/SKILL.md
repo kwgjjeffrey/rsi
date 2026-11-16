@@ -19,3 +19,7 @@ python3 "$REPO/release/scripts/publish_github_release.py" --repo "$REPO"
 ```
 
 安装者按[环境模块](../setup/SKILL.md)管理本地服务，按[安装提示词](../setup/install-skill-prompt.md)核对公开制品。发行前不得使用 latest 提示词冒充已有下载。
+
+### npx skills 分发
+
+公开 Release 并读回校验后，执行 `python3 release/scripts/publish_skill_repository.py --repo <源码目录> --checkout <新的临时消费仓目录>`，将同一已校验归档发布到 GitHub 的 `distribution` 分支。该分支包含可执行 runtime，不从源码目录运行。安装/更新使用 `npx skills add https://github.com/kwgjjeffrey/rsi/tree/distribution --skill rsi --global --yes`，后续通过 `npx skills check` 与 `npx skills update rsi --global --yes` 检查和更新。升级前从已安装入口停止服务，升级后从相同入口启动；数据根保持不变。

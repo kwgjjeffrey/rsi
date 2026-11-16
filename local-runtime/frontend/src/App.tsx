@@ -34,8 +34,7 @@ import {
   Workflow,
   X,
 } from "lucide-react";
-import Markdown from "react-markdown";
-import remarkGfm from "remark-gfm";
+import { Md, Evidence, EvidenceWorkspace } from "./FilePreview";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -112,27 +111,6 @@ const views = [
   { id: "iterations", label: "迭代观察", icon: Workflow },
 ] as const;
 type View = (typeof views)[number]["id"];
-function Md({ children }: { children: string }) {
-  return (
-    <div className="markdown">
-      <Markdown
-        remarkPlugins={[remarkGfm]}
-        components={{
-          a: ({ href, children }) =>
-            href?.startsWith("http") ? (
-              <a href={href} target="_blank" rel="noreferrer">
-                {children}
-              </a>
-            ) : (
-              <span title={href}>{children}</span>
-            ),
-        }}
-      >
-        {children}
-      </Markdown>
-    </div>
-  );
-}
 function Blank({ title, description }: { title: string; description: string }) {
   return (
     <Empty>
@@ -527,9 +505,7 @@ function CaseDetail({
                     <CardContent>
                       <div className="evidence">
                         <FileText className="size-4 shrink-0" />
-                        <p className="whitespace-pre-wrap break-words text-sm leading-relaxed">
-                          {text(j.evidence || "未附证据")}
-                        </p>
+                        <Evidence value={j.evidence} />
                       </div>
                     </CardContent>
                   </Card>
@@ -1377,7 +1353,7 @@ function Blueprint({
           />
         ) : selected.endsWith(".md") ? (
           <div className="document-paper">
-            <Md>{content}</Md>
+            <Md basePath={selected}>{content}</Md>
           </div>
         ) : selected.endsWith(".json") ? (
           <Section
@@ -1475,237 +1451,239 @@ export default function App() {
     });
   }
   return (
-    <div className="app-shell">
-      <aside className="app-sidebar">
-        <div className="brand">
-          <div className="brand-mark">
-            <Workflow className="size-5" />
-          </div>
-          <div>
-            <strong>RSI</strong>
-            <span>Skill 进化工作台</span>
-          </div>
-          <Badge variant="outline">LOCAL</Badge>
-        </div>
-        <Separator />
-        <div className="project-switch">
-          <span className="eyebrow">目标项目</span>
-          <Select
-            value={projectId}
-            onValueChange={(v) => {
-              if (v) {
-                setProjectId(String(v));
-                setSprintId(undefined);
-              }
-            }}
-          >
-            <SelectTrigger className="w-full" aria-label="切换目标项目">
-              <SelectValue placeholder="选择项目">
-                {projects.find((p) => p.id === projectId)?.name ||
-                  projectId ||
-                  "选择项目"}
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                {projects.map((p) => (
-                  <SelectItem key={p.id} value={p.id}>
-                    {p.name || p.id}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-          <Button variant="ghost" size="sm" onClick={() => prompt("project")}>
-            <Plus data-icon="inline-start" />
-            接入新项目
-          </Button>
-        </div>
-        <nav className="flex flex-col gap-1.5 px-3">
-          {views.map((item) => (
-            <Button
-              key={item.id}
-              variant={view === item.id ? "secondary" : "ghost"}
-              className="justify-start"
-              onClick={() => setView(item.id)}
-            >
-              <item.icon data-icon="inline-start" />
-              {item.label}
-              {view === item.id && (
-                <span className="ml-auto">
-                  <ChevronRight className="size-3.5" />
-                </span>
-              )}
-            </Button>
-          ))}
-        </nav>
-        <div className="sidebar-bottom">
-          <div className="flex items-center gap-2 text-xs">
-            <span className={cn("connection-dot", error && "disconnected")} />
-            {error ? "连接异常" : "本地服务已连接"}
-          </div>
-          <p>
-            数据留在本机
-            <br />
-            每个结论，都能回到证据
-          </p>
-        </div>
-      </aside>
-      <main className="workspace">
-        <header className="topbar">
-          <div className="flex min-w-0 items-center gap-2 text-sm">
-            <span className="text-muted-foreground">工作台</span>
-            <ChevronRight className="size-3.5 text-muted-foreground" />
-            <span className="truncate font-medium">
-              {projects.find((p) => p.id === projectId)?.name ||
-                projectId ||
-                "项目"}
-            </span>
-            <span className="mx-1 text-muted-foreground">/</span>
-            <span>{views.find((v) => v.id === view)?.label}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              disabled={loading}
-              onClick={() => setRevision((n) => n + 1)}
-            >
-              {loading ? (
-                <Loader2 className="animate-spin" data-icon="inline-start" />
-              ) : (
-                <RefreshCw data-icon="inline-start" />
-              )}
-              刷新
-            </Button>
-            <Separator orientation="vertical" className="h-5" />
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => prompt("dataset")}
-            >
-              <Plus data-icon="inline-start" />
-              新增问题集
-            </Button>
-          </div>
-        </header>
-        {error ? (
-          <div className="page-content">
-            <Alert variant="destructive">
-              <CircleDot />
-              <AlertTitle>无法连接本地工作台</AlertTitle>
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-            <Button
-              variant="outline"
-              className="mt-4"
-              onClick={() => setRevision((n) => n + 1)}
-            >
-              重新连接
-            </Button>
-          </div>
-        ) : loading ? (
-          <div className="page-content flex flex-col gap-5">
-            <Skeleton className="h-10 w-64" />
-            <Skeleton className="h-5 w-96" />
-            <div className="grid grid-cols-3 gap-4">
-              {[1, 2, 3].map((i) => (
-                <Skeleton key={i} className="h-32" />
-              ))}
+    <EvidenceWorkspace.Provider value={workspace}>
+      <div className="app-shell">
+        <aside className="app-sidebar">
+          <div className="brand">
+            <div className="brand-mark">
+              <Workflow className="size-5" />
             </div>
-            <Skeleton className="h-80" />
+            <div>
+              <strong>RSI</strong>
+              <span>Skill 进化工作台</span>
+            </div>
+            <Badge variant="outline">LOCAL</Badge>
           </div>
-        ) : workspace ? (
-          <>
-            {workspace.errors.length > 0 && (
-              <Alert variant="destructive">
-                <AlertTitle>部分文件未加载</AlertTitle>
-                <AlertDescription>
-                  {workspace.errors.join("\n")}
-                </AlertDescription>
-              </Alert>
-            )}
-            {view === "overview" && (
-              <Overview
-                workspace={workspace}
-                onNavigate={setView}
-                onSprint={(id) => {
-                  setSprintId(id);
-                  setView("iterations");
-                }}
-              />
-            )}
-            {view === "iterations" && (
-              <Iterations
-                key={workspace.project.id + String(sprintId)}
-                workspace={workspace}
-                initialSprint={sprintId}
-                onRaw={raw}
-              />
-            )}{" "}
-            {view === "datasets" && (
-              <Datasets
-                key={workspace.project.id}
-                workspace={workspace}
-                onRaw={raw}
-                onImport={() => prompt("dataset")}
-              />
-            )}{" "}
-            {view === "blueprint" && (
-              <Blueprint
-                key={workspace.project.id}
-                workspace={workspace}
-                onRaw={raw}
-              />
-            )}
-          </>
-        ) : (
-          <Blank
-            title="接入第一个目标项目"
-            description="通过左侧接入新项目，复制提示词交给 Agent 完成登记。"
-          />
-        )}
-      </main>
-      <Dialog
-        open={!!dialog}
-        onOpenChange={(open) => {
-          if (!open) setDialog(undefined);
-        }}
-      >
-        <DialogContent className="max-h-[85vh] overflow-auto sm:max-w-3xl">
-          <DialogHeader>
-            <DialogTitle>{dialog?.title}</DialogTitle>
-            <DialogDescription>
-              {dialog?.prompt
-                ? "复制这段提示词，交给 Agent 执行。当前按钮只生成说明，不修改数据。"
-                : "保留完整原始内容，供核对与追溯。日常观察请使用结构化视图。"}
-            </DialogDescription>
-          </DialogHeader>
-          <pre className="code-block max-h-[55vh]">{dialog?.body}</pre>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDialog(undefined)}>
-              关闭
-            </Button>
-            <Button
-              onClick={async () => {
-                try {
-                  await navigator.clipboard.writeText(dialog?.body || "");
-                  setCopied(true);
-                } catch {
-                  setCopied(false);
+          <Separator />
+          <div className="project-switch">
+            <span className="eyebrow">目标项目</span>
+            <Select
+              value={projectId}
+              onValueChange={(v) => {
+                if (v) {
+                  setProjectId(String(v));
+                  setSprintId(undefined);
                 }
               }}
             >
-              {copied ? (
-                <Check data-icon="inline-start" />
-              ) : (
-                <ClipboardCopy data-icon="inline-start" />
-              )}
-              {copied ? "已复制" : "复制内容"}
+              <SelectTrigger className="w-full" aria-label="切换目标项目">
+                <SelectValue placeholder="选择项目">
+                  {projects.find((p) => p.id === projectId)?.name ||
+                    projectId ||
+                    "选择项目"}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  {projects.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>
+                      {p.name || p.id}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+            <Button variant="ghost" size="sm" onClick={() => prompt("project")}>
+              <Plus data-icon="inline-start" />
+              接入新项目
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
+          </div>
+          <nav className="flex flex-col gap-1.5 px-3">
+            {views.map((item) => (
+              <Button
+                key={item.id}
+                variant={view === item.id ? "secondary" : "ghost"}
+                className="justify-start"
+                onClick={() => setView(item.id)}
+              >
+                <item.icon data-icon="inline-start" />
+                {item.label}
+                {view === item.id && (
+                  <span className="ml-auto">
+                    <ChevronRight className="size-3.5" />
+                  </span>
+                )}
+              </Button>
+            ))}
+          </nav>
+          <div className="sidebar-bottom">
+            <div className="flex items-center gap-2 text-xs">
+              <span className={cn("connection-dot", error && "disconnected")} />
+              {error ? "连接异常" : "本地服务已连接"}
+            </div>
+            <p>
+              数据留在本机
+              <br />
+              每个结论，都能回到证据
+            </p>
+          </div>
+        </aside>
+        <main className="workspace">
+          <header className="topbar">
+            <div className="flex min-w-0 items-center gap-2 text-sm">
+              <span className="text-muted-foreground">工作台</span>
+              <ChevronRight className="size-3.5 text-muted-foreground" />
+              <span className="truncate font-medium">
+                {projects.find((p) => p.id === projectId)?.name ||
+                  projectId ||
+                  "项目"}
+              </span>
+              <span className="mx-1 text-muted-foreground">/</span>
+              <span>{views.find((v) => v.id === view)?.label}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                disabled={loading}
+                onClick={() => setRevision((n) => n + 1)}
+              >
+                {loading ? (
+                  <Loader2 className="animate-spin" data-icon="inline-start" />
+                ) : (
+                  <RefreshCw data-icon="inline-start" />
+                )}
+                刷新
+              </Button>
+              <Separator orientation="vertical" className="h-5" />
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => prompt("dataset")}
+              >
+                <Plus data-icon="inline-start" />
+                新增问题集
+              </Button>
+            </div>
+          </header>
+          {error ? (
+            <div className="page-content">
+              <Alert variant="destructive">
+                <CircleDot />
+                <AlertTitle>无法连接本地工作台</AlertTitle>
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+              <Button
+                variant="outline"
+                className="mt-4"
+                onClick={() => setRevision((n) => n + 1)}
+              >
+                重新连接
+              </Button>
+            </div>
+          ) : loading ? (
+            <div className="page-content flex flex-col gap-5">
+              <Skeleton className="h-10 w-64" />
+              <Skeleton className="h-5 w-96" />
+              <div className="grid grid-cols-3 gap-4">
+                {[1, 2, 3].map((i) => (
+                  <Skeleton key={i} className="h-32" />
+                ))}
+              </div>
+              <Skeleton className="h-80" />
+            </div>
+          ) : workspace ? (
+            <>
+              {workspace.errors.length > 0 && (
+                <Alert variant="destructive">
+                  <AlertTitle>部分文件未加载</AlertTitle>
+                  <AlertDescription>
+                    {workspace.errors.join("\n")}
+                  </AlertDescription>
+                </Alert>
+              )}
+              {view === "overview" && (
+                <Overview
+                  workspace={workspace}
+                  onNavigate={setView}
+                  onSprint={(id) => {
+                    setSprintId(id);
+                    setView("iterations");
+                  }}
+                />
+              )}
+              {view === "iterations" && (
+                <Iterations
+                  key={workspace.project.id + String(sprintId)}
+                  workspace={workspace}
+                  initialSprint={sprintId}
+                  onRaw={raw}
+                />
+              )}{" "}
+              {view === "datasets" && (
+                <Datasets
+                  key={workspace.project.id}
+                  workspace={workspace}
+                  onRaw={raw}
+                  onImport={() => prompt("dataset")}
+                />
+              )}{" "}
+              {view === "blueprint" && (
+                <Blueprint
+                  key={workspace.project.id}
+                  workspace={workspace}
+                  onRaw={raw}
+                />
+              )}
+            </>
+          ) : (
+            <Blank
+              title="接入第一个目标项目"
+              description="通过左侧接入新项目，复制提示词交给 Agent 完成登记。"
+            />
+          )}
+        </main>
+        <Dialog
+          open={!!dialog}
+          onOpenChange={(open) => {
+            if (!open) setDialog(undefined);
+          }}
+        >
+          <DialogContent className="max-h-[85vh] overflow-auto sm:max-w-3xl">
+            <DialogHeader>
+              <DialogTitle>{dialog?.title}</DialogTitle>
+              <DialogDescription>
+                {dialog?.prompt
+                  ? "复制这段提示词，交给 Agent 执行。当前按钮只生成说明，不修改数据。"
+                  : "保留完整原始内容，供核对与追溯。日常观察请使用结构化视图。"}
+              </DialogDescription>
+            </DialogHeader>
+            <pre className="code-block max-h-[55vh]">{dialog?.body}</pre>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setDialog(undefined)}>
+                关闭
+              </Button>
+              <Button
+                onClick={async () => {
+                  try {
+                    await navigator.clipboard.writeText(dialog?.body || "");
+                    setCopied(true);
+                  } catch {
+                    setCopied(false);
+                  }
+                }}
+              >
+                {copied ? (
+                  <Check data-icon="inline-start" />
+                ) : (
+                  <ClipboardCopy data-icon="inline-start" />
+                )}
+                {copied ? "已复制" : "复制内容"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+    </EvidenceWorkspace.Provider>
   );
 }

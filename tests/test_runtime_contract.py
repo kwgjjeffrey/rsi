@@ -24,6 +24,10 @@ class Contract(unittest.TestCase):
   outside=self.root/'outside.md';outside.write_text('private outside');(base/'blueprint/escape.md').symlink_to(outside)
   result=self.call({'op':'workspace','project':'target'})
   self.assertEqual(result['contents']['blueprint/analysis.md'],'# Analysis');self.assertNotIn('private.txt',result['contents']);self.assertNotIn('blueprint/escape.md',result['contents'])
+  self.assertEqual(result['root'],str(base.resolve()))
+  self.assertEqual(self.call({'op':'read','project':'target','path':str(base/'blueprint/analysis.md')})['content'],'# Analysis')
+  self.call({'op':'read','project':'target','path':'blueprint/escape.md'},False)
+  self.call({'op':'read','project':'target','path':'blueprint/missing.md'},False)
  def test_duplicate_cases_rejected(self):
   self.register();self.call({'op':'import','project':'target','dataset':'bad','version':'v1','records':[self.record(),self.record()]},False)
 if __name__=='__main__':unittest.main()

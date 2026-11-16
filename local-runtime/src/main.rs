@@ -98,7 +98,7 @@ fn dispatch(root: &Path, db: &Connection, v: Value) -> Result<Value, String> {
             }
         }
         return Ok(
-            json!({"project":info["project"],"files":info["files"],"contents":contents,"errors":errors}),
+            json!({"root":fs::canonicalize(&base).map_err(|e| e.to_string())?,"project":info["project"],"files":info["files"],"contents":contents,"errors":errors}),
         );
     }
     if op == "inspect" {

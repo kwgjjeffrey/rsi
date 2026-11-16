@@ -11,6 +11,7 @@ export interface FileEntry {
   bytes: number;
 }
 export interface Workspace {
+  root?: string;
   project: Project;
   files: FileEntry[];
   contents: Record<string, string>;
