@@ -12,7 +12,7 @@ RSI 核心拥有标准记录、协议校验和轮次存储；项目脚本拥有�
 2. **选择起点并生成。** 根据目标主要职责选择 instruction-tools、code-artifact 或 business-workflow；独立选择 codex、app-server、cdp 或 custom Replay。执行 initialize 生成基础 Blueprint 与 normalize 目录。已存在文件保持不变；复用已有 manifest 的模板选择，升级不会静默覆盖项目定制。
 3. **建设三段适配器。** 按[目录与协议手册](protocol.md)在 cases/、replay/、results/ 中实现；共用代码放 shared/，真实样本和断言放 tests/。将每段 manifest.stages.<stage>.status 从 needs_analysis 改为 configured 前，先补齐该段分析与实现。不得只修改状态绕过缺失能力。
 4. **分段验证，再串联。** 用 run cases 生成候选；按[问题集模块](../datasets/SKILL.md)阅读、补标、反思后冻结。用一条受控任务验证 replay 的独立会话和原始回收，再用 run results 校验标准输出。真实执行和回收产物留在本项目。inspect 只报告配置和合同证据；合同通过不代表 API 权限、实际 Skill 加载或任务质量已验证。
-5. **进入进化。** 项目 blueprint/replay.json 使用 `normalization_protocol: 1`，由[迭代模块](../evolution/SKILL.md)调用项目 replay → results；RSI 保留输入并组装标准 case record，新的 annotation 必须重新评价。计划、预算、外部写入边界仍按目标项目约定执行。
+5. **进入进化。** 先按[归因与改进方法](../evolution/analyze-and-plan.md)把实际问题、代码/轨迹证据和根因假设写进 blueprint/analysis.md，把具体修改及接受条件写进 blueprint/improvement-plan.md。由[迭代模块](../evolution/SKILL.md)按Fibonacci窗口调用项目 replay → results，新的 annotation 必须重新评价。不要直接执行整题库，或用目录/配置检查代替问题分析。
 
 完成条件：assessment 有依据；三个入口各自有实现与样本；候选 records 合法；真实小样本能形成可追溯的执行记录；未验证或阻塞项明确可见。缺少 Harness 时仍可先完成 cases/ 并进行历史分析，不能声称已闭环。
 

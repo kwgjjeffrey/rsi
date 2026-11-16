@@ -5,6 +5,23 @@ import re
 
 IDENTIFIER = re.compile(r"^[A-Za-z0-9_-]+$")
 
+def judgment_results(record):
+    """Validate explicit criterion judgments without inventing a scalar score."""
+    annotation=record.get('annotation', {})
+    items=annotation.get('judgments', [])
+    if not isinstance(items,list) or not items:raise ValueError('criterion judgments required')
+    results={}
+    for item in items:
+        key=item.get('criterion',item.get('criterion_id')) if isinstance(item,dict) else None
+        if not isinstance(key,str) or not key or key in results:raise ValueError('unique criterion IDs required')
+        value=item.get('result')
+        if value not in ('passed','failed','needs_improvement'):raise ValueError('criterion result is unresolved')
+        results[key]=value
+    expected=[c.get('id') for c in annotation.get('criteria',[]) if isinstance(c,dict)]
+    if expected and (len(expected)!=len(set(expected)) or set(expected)!=set(results)):
+        raise ValueError('judgments must cover exactly the frozen project criteria')
+    return results
+
 def identifier(value, label):
     if not isinstance(value, str) or not IDENTIFIER.fullmatch(value):
         raise ValueError(label + ' must contain only letters, digits, _ or -')
@@ -30,12 +47,15 @@ def validate_record(record):
         raise ValueError('reflection must be a string')
     if annotation['status'] == 'completed':
         number = annotation.get('score')
-        if isinstance(number, bool) or not isinstance(number, (int, float)) or not 0 <= number <= 100:
-            raise ValueError('completed annotation requires score 0..100')
+        if number is None:
+            judgment_results(record)
+        elif isinstance(number, bool) or not isinstance(number, (int, float)) or not 0 <= number <= 100:
+            raise ValueError('score, when supplied, must be 0..100')
         if not annotation.get('rubric_version') or not record['reflection'].strip():
             raise ValueError('completed annotation requires rubric_version and reflection')
-    if annotation.get('outcome') is not None and annotation['outcome'] not in ('passed', 'failed'):
-        raise ValueError('annotation.outcome must be passed or failed')
+    if annotation.get('outcome') is not None and annotation['outcome'] not in ('passed', 'failed','unknown'):
+        raise ValueError('annotation.outcome must be passed, failed or unknown')
+    if annotation['status']=='completed' and annotation.get('outcome')=='unknown':raise ValueError('unresolved outcome cannot be completed')
     return record
 
 def validate_cases(value):
@@ -69,9 +89,12 @@ def materialize_replay(original, normalized, record_id):
     validate_result(normalized)
     identifier(record_id, 'record_id')
     criteria = original.get('annotation', {})
-    annotation = {'status': 'pending', 'criteria': copy.deepcopy(criteria.get('criteria', []))}
-    if criteria.get('rubric_version'):
-        annotation['rubric_version'] = criteria['rubric_version']
+    # Keep frozen project reference contracts/extensions; clear observed labels.
+    annotation=copy.deepcopy(criteria)
+    for key in ('score','outcome','result','verdict','passed','judgments','reason','explanation','annotator','confidence','source','evidence','observed_discovery','review_status','root_cause'):
+        annotation.pop(key,None)
+    annotation['status']='pending'
+    annotation.setdefault('criteria',[])
     result = {'schema_version': 1, 'case_id': original['case_id'], 'record_id': record_id,
               'initial_record_id': original['record_id'], 'task_input': copy.deepcopy(original['task_input']),
               'trajectory': normalized['trajectory'], 'annotation': annotation, 'reflection': '',
