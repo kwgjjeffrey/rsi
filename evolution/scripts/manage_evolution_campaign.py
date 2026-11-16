@@ -1,5 +1,5 @@
-"""Bound independent replay to Fibonacci windows; no automatic grading or edits."""
-import argparse,copy,fcntl,hashlib,json,os,subprocess,sys
+"""One frozen Sprint per campaign; Fibonacci selects cases in successive Rounds."""
+import argparse,copy,fcntl,hashlib,json,os,shutil,subprocess,sys
 from pathlib import Path
 
 SKILL=Path(__file__).resolve().parents[2]
@@ -54,8 +54,40 @@ def dispatch(root,request):
     result=subprocess.check_output([str(SKILL/'local-runtime/bin/rsi-runtime'),'dispatch',str(file)],env={**os.environ,'RSI_DATA_DIR':str(root.parents[1])},text=True)
     return json.loads(result)
 
+def round_directory(root,item):return root/f'sprints/{item["sprint"]}/rounds/{item["round"]:03d}'
+
+def prepare(root,project,state,timeout):
+    if state['active']:raise ValueError('Assess the active window before preparing another')
+    for name in ['analysis.md','improvement-plan.md']:
+        if not(root/f'blueprint/{name}').is_file()or not(root/f'blueprint/{name}').read_text().strip():raise ValueError('Write actual problem analysis and improvement plan before preparing a window')
+    for case in state['case_order']:
+        file=root/f'datasets/{state["dataset"]}/cases/{case}/record.json'
+        if digest(file)!=state['dataset_hashes'][case]:raise ValueError('Frozen question changed; create a new dataset version and Sprint')
+    final_repairs=state['outstanding_cases']if state['cursor']>=len(state['case_order'])else[]
+    repair=bool(state['repair_cases']or final_repairs)
+    cases=state['repair_cases']or final_repairs or state['case_order'][state['cursor']:state['cursor']+size_at(state['fibonacci_index'])]
+    if not cases:return None
+    sprint=state['sprint'];directory=root/'sprints'/sprint
+    repo=Path(project['repo']);revision=subprocess.check_output(['git','rev-parse','HEAD'],cwd=repo,text=True).strip()
+    if not directory.exists():
+        dataset,version=state['dataset'].split('/')
+        dispatch(root,{'op':'create-sprint','project':project['id'],'sprint':sprint,'dataset':dataset,'version':version,'source':{'revision':revision,'kind':'fibonacci_campaign'},'budget':{'case_timeout_seconds':timeout}})
+        (directory/'rounds/000/reflection.md').write_text('Frozen question library. Pending references are not measured results.\n')
+    number=len(state['history'])+1;round_dir=directory/f'rounds/{number:03d}'
+    if round_dir.exists():raise ValueError('Round already exists; inspect an interrupted prepare before retrying')
+    round_dir.mkdir()
+    try:
+        # Round-local analysis is frozen before execution; grading remains Sprint-frozen.
+        shutil.copytree(root/'blueprint',round_dir/'snapshots/blueprint')
+        selection={'sprint':sprint,'round':number,'cases':cases,'repair':repair,'source':revision,'batch_size':len(cases),'fibonacci_index':state['fibonacci_index']}
+        save(round_dir/'selection.json',selection)
+        (round_dir/'plan.md').write_text('# Round '+str(number)+'\n\n'+('Repair existing cases'if repair else'Fibonacci sample')+': '+', '.join(cases)+'\n\n'+(root/'blueprint/improvement-plan.md').read_text())
+    except BaseException:
+        shutil.rmtree(round_dir);raise
+    return selection
+
 def main():
-    p=argparse.ArgumentParser();p.add_argument('action',choices=['init','status','prepare','run','assess']);p.add_argument('--project-root',type=Path,required=True);p.add_argument('--campaign',required=True);p.add_argument('--dataset');p.add_argument('--version');p.add_argument('--timeout',type=int,default=600);a=p.parse_args()
+    p=argparse.ArgumentParser();p.add_argument('action',choices=['init','status','prepare','run','assess','migrate']);p.add_argument('--project-root',type=Path,required=True);p.add_argument('--campaign',required=True);p.add_argument('--sprint');p.add_argument('--title');p.add_argument('--dataset');p.add_argument('--version');p.add_argument('--timeout',type=int,default=600);a=p.parse_args()
     root=a.project_root.resolve();project=load(root/'project.json');campaign=identifier(a.campaign,'campaign');state_path=root/f'blueprint/campaigns/{campaign}.json';state_path.parent.mkdir(parents=True,exist_ok=True)
     with state_path.with_suffix('.lock').open('a')as lock:
         fcntl.flock(lock,fcntl.LOCK_EX)
@@ -64,40 +96,26 @@ def main():
             dataset=identifier(a.dataset,'dataset');version=identifier(a.version,'version');files=sorted((root/f'datasets/{dataset}/{version}/cases').glob('*/record.json'))
             if not files:raise ValueError('Freeze a nonempty annotated question library first')
             records=[validate_record(load(f))for f in files]
-            state={'campaign':campaign,'dataset':dataset+'/'+version,'case_order':[r['case_id']for r in records],'dataset_hashes':{r['case_id']:digest(f)for r,f in zip(records,files)},'cursor':0,'fibonacci_index':0,'active':None,'repair_cases':[],'outstanding_cases':[],'history':[]};save(state_path,state)
+            state={'schema_version':2,'campaign':campaign,'sprint':identifier(a.sprint or campaign,'sprint'),'title':a.title or campaign.replace('_',' '),'dataset':dataset+'/'+version,'case_order':[r['case_id']for r in records],'dataset_hashes':{r['case_id']:digest(f)for r,f in zip(records,files)},'cursor':0,'fibonacci_index':0,'active':None,'repair_cases':[],'outstanding_cases':[],'history':[]};save(state_path,state)
         state=load(state_path)
+        if a.action=='migrate':
+            from migrate_campaign_rounds import migrate
+            print(json.dumps(migrate(root,project,state,state_path,a.sprint or campaign,a.title),ensure_ascii=False));return
         if a.action in ['init','status']:
-            print(json.dumps({'campaign':campaign,'questions':len(state['case_order']),'next_window_size':size_at(state['fibonacci_index']),'active':state['active'],'repair_cases':state['repair_cases'],'state':str(state_path)},ensure_ascii=False));return
+            print(json.dumps({'campaign':campaign,'sprint':state.get('sprint'),'questions':len(state['case_order']),'next_round':len(state['history'])+1,'next_window_size':size_at(state['fibonacci_index']),'active':state['active'],'repair_cases':state['repair_cases'],'state':str(state_path)},ensure_ascii=False));return
+        if state.get('schema_version')!=2:raise ValueError('Legacy per-window Sprints: run migrate before continuing')
         if a.action=='prepare':
-            if state['active']:raise ValueError('Assess the active window before preparing another')
-            for name in ['analysis.md','improvement-plan.md']:
-                if not(root/f'blueprint/{name}').is_file()or not(root/f'blueprint/{name}').read_text().strip():raise ValueError('Write actual problem analysis and improvement plan before preparing a window')
-            final_repairs=state['outstanding_cases'] if state['cursor']>=len(state['case_order']) else []
-            repair=bool(state['repair_cases']or final_repairs);cases=state['repair_cases']or final_repairs or state['case_order'][state['cursor']:state['cursor']+size_at(state['fibonacci_index'])]
-            if not cases:print(json.dumps({'decision':'finished','questions':state['cursor']}));return
-            records=[]
-            for case in cases:
-                file=root/f'datasets/{state["dataset"]}/cases/{case}/record.json'
-                if digest(file)!=state['dataset_hashes'][case]:raise ValueError('Frozen question changed; create a new dataset version')
-                original=load(file);record=copy.deepcopy(original)
-                if repair:
-                    previous=next(x for x in reversed(state['history'])if case in x['cases']);last=load(root/f'sprints/{previous["sprint"]}/rounds/001/cases/{case}/record.json')
-                    if last['task_input']!=original['task_input']or last['annotation'].get('criteria')!=original['annotation'].get('criteria'):raise ValueError('Repair cannot change question or criteria')
-                    record.update(last);record['annotation']={**original['annotation'],**last['annotation']}
-                records.append(record)
-            index=len(state['history'])+1;version=f'{campaign}_{index:03}';sprint=f'{campaign}_{index:03}';repo=Path(project['repo']);revision=subprocess.check_output(['git','rev-parse','HEAD'],cwd=repo,text=True).strip()
-            dispatch(root,{'op':'import','project':project['id'],'dataset':'campaign_windows','version':version,'records':records})
-            result=dispatch(root,{'op':'create-sprint','project':project['id'],'sprint':sprint,'dataset':'campaign_windows','version':version,'source':{'revision':revision,'kind':'repair_existing_cases'if repair else'fibonacci_sample'},'budget':{'max_rounds':1,'case_timeout_seconds':a.timeout}})
-            directory=Path(result['path']);(directory/'rounds/000/reflection.md').write_text('Actual previous records retained as repair baseline.'if repair else'Pre-execution references, not observed outcomes.')
-            round_dir=directory/'rounds/001';round_dir.mkdir();plan=(root/'blueprint/improvement-plan.md').read_text();(round_dir/'plan.md').write_text('# Window '+str(index)+'\n\nCases: '+', '.join(cases)+'\n\nFrozen analysis: [analysis](sprints/'+sprint+'/snapshots/blueprint/analysis.md)\n\n'+plan)
-            state['active']={'sprint':sprint,'cases':cases,'repair':repair,'source':revision,'batch_size':len(cases)};save(state_path,state);print(json.dumps(state['active'],ensure_ascii=False));return
+            selection=prepare(root,project,state,a.timeout)
+            if selection:state['active']=selection;save(state_path,state)
+            print(json.dumps(selection or {'decision':'finished','questions':state['cursor']},ensure_ascii=False));return
         active=state['active']
         if not active:raise ValueError('No active window')
+        round_dir=round_directory(root,active)
         if a.action=='run':
-            subprocess.run([sys.executable,str(SKILL/'evolution/scripts/manage_evolution_round.py'),'replay','--project-root',str(root),'--sprint',active['sprint'],'--round','1','--adapter',str(root/'blueprint/replay.json'),'--timeout',str(a.timeout)],check=True);return
-        round_dir=root/f'sprints/{active["sprint"]}/rounds/001'
+            subprocess.run([sys.executable,str(SKILL/'evolution/scripts/manage_evolution_round.py'),'replay','--project-root',str(root),'--sprint',active['sprint'],'--round',str(active['round']),'--adapter',str(root/'blueprint/replay.json'),'--timeout',str(a.timeout)],check=True);return
         if not(round_dir/'reflection.md').is_file()or not(round_dir/'reflection.md').read_text().strip():raise ValueError('Write the observed common causes and next changes in round reflection.md before expansion')
-        records=[load(round_dir/f'cases/{case}/record.json')for case in active['cases']];decision=assess(records,load(round_dir.parent.parent/'snapshots/blueprint/evaluation.json'),repair=active['repair']);save(round_dir/'expansion-decision.json',decision)
+        records=[load(round_dir/f'cases/{case}/record.json')for case in active['cases']]
+        decision=assess(records,load(round_dir.parent.parent/'snapshots/blueprint/evaluation.json'),repair=active['repair']);save(round_dir/'expansion-decision.json',decision)
         state['outstanding_cases']=outstanding(state['outstanding_cases'],decision['outcomes']);state['repair_cases']=state['outstanding_cases']if decision['decision']!='expand'else[]
         if not active['repair']:state['cursor']+=len(active['cases']);state['fibonacci_index']+=1
         state['history'].append({**active,**decision});state['active']=None;save(state_path,state);print(json.dumps(decision,ensure_ascii=False))

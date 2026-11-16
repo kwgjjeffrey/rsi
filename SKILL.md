@@ -9,7 +9,7 @@ description: 接入目标 Skill 的源码与工作记录，归一化打标、逐
 1. 按[环境与工作台](setup/SKILL.md)启动 Rust 本地服务。
 2. 按[项目接入](onboarding/SKILL.md)登记源码；按[归一化脚手架](normalize/SKILL.md)分析目标，选择 Blueprint 场景与 Harness 起点，在项目数据根生成并建设 normalize/。
 3. 按[问题集归一化](datasets/SKILL.md)导入完整 case records；无人工标注时 Agent 阅读实际轨迹完成标注。
-4. 按[迭代与重放](evolution/SKILL.md)先形成有证据的问题归因和可验证的改进计划，再修改、独立重放和评价。默认采用1、2、3、5、8…题的Fibonacci窗口；超过50%不合格或证据不完整时禁止扩样，先修已观察问题。
+4. 按[迭代与重放](evolution/SKILL.md)先形成有证据的问题归因和可验证的改进计划，再修改、独立重放和评价。同一进化任务只建一个Sprint，每轮评估/修复追加Round。默认采用1、2、3、5、8…题的Fibonacci选题窗口；超过50%不合格或证据不完整时禁止扩样，先修已观察问题。
 
 分析与计划是进化的必要交付，不是文件引用、指标报表或逐题摘要的别名。按[归因与改进方法](evolution/analyze-and-plan.md)写清“问题→实际证据→根因/假设→具体修改→预期变化→复测决定”，每批后更新。项目评分维度由用户/项目定义，RSI不擅加指标或综合分。
 

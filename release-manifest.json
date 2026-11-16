@@ -1,16 +1,16 @@
 {
   "schemaVersion": 1,
   "name": "rsi",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "repository": "kwgjjeffrey/rsi",
-  "sourceCommit": "8d328ef82da5a6ce33e8d9a09b82077aeb88dd07",
-  "asset": "rsi-0.1.5.tgz",
-  "size": 1686243,
-  "sha256": "63f0387b5d2a1d8a17c46276d1de98f7f8de31faf32745a1af2fa86e14cde95c",
+  "sourceCommit": "c92855ddb009ad84efc4911337d7f6bdd57ca785",
+  "asset": "rsi-0.1.6.tgz",
+  "size": 1691677,
+  "sha256": "8ea3e3404bc20781c4bf9a1f3129ce98a228f440478666924c78fe1e9ac4efb9",
   "componentVersions": {
-    "skill": "0.1.5",
-    "runtime": "0.1.4",
-    "gui": "0.1.4"
+    "skill": "0.1.6",
+    "runtime": "0.1.5",
+    "gui": "0.1.5"
   },
   "platform": "darwin-arm64",
   "bootstrap": {
