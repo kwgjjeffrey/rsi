@@ -1,0 +1,105 @@
+{
+  "verified_at": "2026-11-16T07:15:35.147674+00:00",
+  "status": "released_installed_migrated_and_browser_verified",
+  "version": "0.1.6",
+  "source_commit": "c92855ddb009ad84efc4911337d7f6bdd57ca785",
+  "consumer_commit": "c963a5954e7ffd68f99002526e7dbd88ff79e1ae",
+  "release_url": "https://github.com/kwgjjeffrey/rsi/releases/tag/v0.1.6",
+  "installation": {
+    "files_matched": 45,
+    "installed_entry": "/Users/yuzhiyuan/.agents/skills/rsi",
+    "version": "0.1.6",
+    "source_commit": "c92855ddb009ad84efc4911337d7f6bdd57ca785"
+  },
+  "migration": {
+    "status": "consolidated",
+    "sprint": "daily_fib",
+    "rounds": 10,
+    "measured_case_records": 17,
+    "backup": "/Users/yuzhiyuan/.local/state/rsi/.data/projects/recruitment_semantics/runs/campaign-migrations/daily_fib-20261116T070828016777Z"
+  },
+  "campaign": {
+    "campaign": "daily_fib",
+    "sprint": "daily_fib",
+    "questions": 24,
+    "next_round": 11,
+    "next_window_size": 8,
+    "active": null,
+    "repair_cases": [],
+    "state": "/Users/yuzhiyuan/.local/state/rsi/.data/projects/recruitment_semantics/blueprint/campaigns/daily_fib.json"
+  },
+  "browser": {
+    "status": "passed",
+    "single_daily_sprint": true,
+    "continuous_rounds": 10,
+    "initial_library_questions": 24,
+    "real_repairs_visible": [
+      "P01",
+      "P02",
+      "P04"
+    ],
+    "prerequisite_errors_visible": true,
+    "unselected_not_copied": true,
+    "legacy_canonical_transcript_preview": true,
+    "round_types_and_previous_measurement_comparison": true,
+    "page_errors": []
+  },
+  "checks": {
+    "python_tests": 24,
+    "frontend_tests": 14,
+    "clippy_all_targets": "passed",
+    "historical_evidence_files_unchanged": 370,
+    "same_sprint_repair_and_expansion": "tested",
+    "only_selected_cases_replayed": "tested with isolated adapter",
+    "live_workspace_preview_errors": []
+  },
+  "boundaries": [
+    "Raw historical case records, trajectories and grades were not rewritten.",
+    "Archived Sprints stay readable by original references but are not repeated in the task list.",
+    "Round 0 is the frozen 24-question library, not 24 measured results.",
+    "No ATS task or new Fibonacci window executed; next Round 11 remains on hold during the data-model work.",
+    "Initial browser probes had selector mistakes for the duplicate latest-result column and browser-extension shadow bodies; failures were retained and corrected without product changes."
+  ],
+  "evidence": {
+    "browser-acceptance.json": {
+      "path": "/Users/yuzhiyuan/my_code/rsi/.trial/round-continuity/browser-acceptance.json",
+      "sha256": "0bb70a68ab362ebe816cf400c9830a2ec5add44e35ae3054c4224c15b77f8b2b"
+    },
+    "live-migration.json": {
+      "path": "/Users/yuzhiyuan/my_code/rsi/.trial/round-continuity/live-migration.json",
+      "sha256": "cc4e604f26fbee0eedccba09484a1d2e7f0575d37e88ad5e1e0297ceb8260781"
+    },
+    "live-status.json": {
+      "path": "/Users/yuzhiyuan/my_code/rsi/.trial/round-continuity/live-status.json",
+      "sha256": "0e8bab88b6489ade79319bcb22c58f7937a2e3f8f5301ed4ab08a3de7ae4567a"
+    },
+    "installed-files.json": {
+      "path": "/Users/yuzhiyuan/my_code/rsi/.trial/round-continuity/installed-files.json",
+      "sha256": "47b48c04bb5bb676f9142f60b75c14db75e8f3a5fd7187db44bd76bf8cad8208"
+    },
+    "python-tests-final.log": {
+      "path": "/Users/yuzhiyuan/my_code/rsi/.trial/round-continuity/python-tests-final.log",
+      "sha256": "d3ab39b0ee913a19f93b7b8d1c024d32146b3f4f8beb841bdb4897246b4e8667"
+    },
+    "frontend-tests-final.log": {
+      "path": "/Users/yuzhiyuan/my_code/rsi/.trial/round-continuity/frontend-tests-final.log",
+      "sha256": "bc6addbfc9f2b074f48689476be960c63180b337ddda2b78f4bb65c3968e886e"
+    },
+    "clippy.log": {
+      "path": "/Users/yuzhiyuan/my_code/rsi/.trial/round-continuity/clippy.log",
+      "sha256": "f579d279eeabbdf80c292dab5195c8744bf9548cdec22f44dc1600ce63271d5d"
+    },
+    "distribution.log": {
+      "path": "/Users/yuzhiyuan/my_code/rsi/.trial/round-continuity/distribution.log",
+      "sha256": "6c25d2f47e87b28db985b9fa3704afad1115ff472d5dfbb35e1b0c1d6652895c"
+    },
+    "npx-update.log": {
+      "path": "/Users/yuzhiyuan/my_code/rsi/.trial/round-continuity/npx-update.log",
+      "sha256": "90ea7c03b1c9ca75ddbe259d2b59ea81ceae664586bd7493ceb271b8676007ca"
+    },
+    "verify-workbench.mjs": {
+      "path": "/Users/yuzhiyuan/my_code/rsi/.trial/round-continuity/verify-workbench.mjs",
+      "sha256": "2ca6757b0a858918d655c90f1b3e0a065959a218f010e3a0bf8a0e2b8b796cbd"
+    }
+  }
+}
