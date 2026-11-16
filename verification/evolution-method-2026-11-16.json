@@ -1,0 +1,48 @@
+{
+  "status": "passed",
+  "release": "0.1.5",
+  "componentVersions": {
+    "skill": "0.1.5",
+    "runtime": "0.1.4",
+    "gui": "0.1.4"
+  },
+  "sourceCommit": "8d328ef82da5a6ce33e8d9a09b82077aeb88dd07",
+  "releaseUrl": "https://github.com/kwgjjeffrey/rsi/releases/tag/v0.1.5",
+  "consumerCommit": "2f6a951c4783da96b69e1c1651e83ac78c79de46",
+  "installation": "npx skills update rsi --global --yes",
+  "archive_sha256": "63f0387b5d2a1d8a17c46276d1de98f7f8de31faf32745a1af2fa86e14cde95c",
+  "installed_files_matching_archive": 44,
+  "tests": {
+    "python": 22,
+    "frontend": 11
+  },
+  "consumer_protocol_checks": [
+    "Fibonacci 1, repair same 1, then 2, then 3",
+    "strict greater-than-half gate",
+    "incomplete execution/evaluation hold separately",
+    "frozen grading policy",
+    "categorical comparison without an invented aggregate"
+  ],
+  "browser_checks": {
+    "status": "passed",
+    "version": "0.1.5",
+    "runtime": "0.1.4",
+    "scope": "staged installed artifact and isolated protocol fixture",
+    "analysis_and_plan_visible": true,
+    "relative_plan_preview": true,
+    "categorical_comparison_without_aggregate": true,
+    "actual_baseline_round_1": true,
+    "page_errors": []
+  },
+  "live_workbench_checks": {
+    "status": "passed",
+    "installed_version": "0.1.5",
+    "runtime": "0.1.4",
+    "url": "http://127.0.0.1:56714/",
+    "project": "recruitment_semantics",
+    "actual_analysis_visible": true,
+    "actual_plan_visible": true,
+    "page_errors": []
+  },
+  "scope": "This verifies RSI methodology, installed tools and workbench behavior. It does not claim new recruiting Agent capability results."
+}
